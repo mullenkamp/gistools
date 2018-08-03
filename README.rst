@@ -1,22 +1,18 @@
-ETo - A Python package for calculating reference evapotranspiration
+gistools - Misc geospatial functions build upon geopandas
 ===================================================================
 
-The ETo package contains a class and associated functions to calculate reference evapotranspiration (ETo) using the `UN-FAO 56 paper <http://www.fao.org/docrep/X0490E/X0490E00.htm>`_. Additional functions have been added to calculate historic ETo or potential evapotranspiration (PET) for comparison purposes.
-
-A parameter estimation function hs also been added to the base class to convert most any variety of metereological parameter inputs to the necessary parameters needed to calculate ETo.
+The gistools package is a bunch of misc convenience functions on top of geopandas, shapely, and rasterio for more complicated tasks.
 
 Documentation
 --------------
-The primary documentation for the package can be found `here <http://eto.readthedocs.io>`_.
+No docs yet...
 
 Installation
 ------------
-ETo can be installed via pip or conda::
+gistools can be installed via pip or conda::
 
-  pip install eto
+  pip install gistools
 
 or::
 
-  conda install -c mullenkamp eto
-
-The core dependency is `Pandas <http://pandas.pydata.org/pandas-docs/stable/>`_.
+  conda install -c mullenkamp gistools
