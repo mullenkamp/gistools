@@ -1,6 +1,6 @@
 {% set name = "gistools" %}
-{% set version = "1.0.0" %}
-{% set sha256 = "4b289bb313d1e57127aa957a62d71749bb2a893f8326351dc4c3d52d4b7f6cb3" %}
+{% set version = "1.0.1" %}
+{% set sha256 = "9116fba41820a36d732347803a12176bd81b895ae26c8422457baa2cd43e9202" %}
 
 # sha256 is the prefered checksum -- you can get it for a file with:
 #  `openssl sha256 <file name>`.
@@ -38,6 +38,7 @@ requirements:
     - python
     - geopandas
     - rasterio
+    - pycrsx
 
 
 test:
