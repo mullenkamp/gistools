@@ -15,7 +15,7 @@ from pycrsx.utils import convert_crs
 
 def grid_interp_ts(df, time_col, x_col, y_col, data_col, grid_res, from_crs=None, to_crs=None, interp_fun='cubic', agg_ts_fun=None, period=None, digits=2):
     """
-    Function to take a dataframe of z values and interate through and resample both in time and space. Returns a DataFrame structured like df.
+    Function to take a dataframe of z values and interate through and resample both in time and space. Returns a DataFrame of gridded interpolated results.
 
     Parameters
     ----------
@@ -36,7 +36,7 @@ def grid_interp_ts(df, time_col, x_col, y_col, data_col, grid_res, from_crs=None
     to_crs: int or str or None
         The projection for the output data similar to from_crs.
     interp_fun: str
-        The scipy Rbf interpolation function to be applied (see https://docs.scipy.org/doc/scipy-0.16.1/reference/generated/scipy.interpolate.Rbf.html).
+        The scipy griddata interpolation function to be applied (see `https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.griddata.html`_).
     agg_ts_fun: str or None
         The pandas time series resampling function to resample the data in time (either 'mean' or 'sum'). If None, then no time resampling.
     period: str or None
@@ -117,7 +117,7 @@ def grid_interp_ts(df, time_col, x_col, y_col, data_col, grid_res, from_crs=None
 
 def point_interp_ts(df, time_col, x_col, y_col, data_col, point_shp, point_site_col, from_crs, to_crs=None, interp_fun='cubic', agg_ts_fun=None, period=None, digits=2):
     """
-    Function to take a dataframe of z values and interate through and resample both in time and space. Returns a DataFrame structured like df.
+    Function to take a dataframe of z values and interate through and resample both in time and space. Returns a DataFrame of points from the point_shp.
 
     Parameters
     ----------
@@ -142,7 +142,7 @@ def point_interp_ts(df, time_col, x_col, y_col, data_col, point_shp, point_site_
     to_crs: int or str
         The projection for the output data similar to from_crs.
     interp_fun: str
-        The scipy Rbf interpolation function to be applied (see https://docs.scipy.org/doc/scipy-0.16.1/reference/generated/scipy.interpolate.Rbf.html).
+        The scipy griddata interpolation function to be applied (see `https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.griddata.html`_).
     agg_ts_fun: str or None
         The pandas time series resampling function to resample the data in time (either 'mean' or 'sum'). If None, then no time resampling.
     period: str or None
