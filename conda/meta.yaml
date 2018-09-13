@@ -50,7 +50,7 @@ about:
   home: https://github.com/mullenkamp/gistools
   license: Apache License 2.0
   license_family: APACHE
-  summary: Misc geospatial functions build upon geopandas
+  summary: Misc geospatial functions built upon geopandas
   description: ""
   doc_url: ''
   dev_url: ''
