@@ -7,7 +7,7 @@ import pandas as pd
 import geopandas as gpd
 from geopandas.tools import sjoin
 from shapely.geometry import Point, Polygon
-from pycrsx.utils import convert_crs
+from pycrs import parse
 
 
 #########################################
@@ -165,7 +165,7 @@ def xy_to_gpd(id_col, x_col, y_col, df=None, crs=2193):
     else:
         raise ValueError('id_data could not be determined')
     if isinstance(crs, int):
-        crs1 = convert_crs(crs)
+        crs1 = parse.from_epsg_code(crs).to_proj4()
     elif isinstance(crs, (str, dict)):
         crs1 = crs
     else:
@@ -290,3 +290,4 @@ def multipoly_to_poly(geodataframe):
             new1 = geom1.copy()
         gpd2 = pd.concat([gpd2, new1])
     return gpd2.reset_index(drop=True)
+
