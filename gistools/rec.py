@@ -37,7 +37,7 @@ def find_upstream(nzreach, rec_streams_shp):
 #    cols = ['NZREACH', 'NZFNODE', 'NZTNODE']
 #
 #    ### Load data
-    rec = load_geo_data(rec_streams_shp)
+    rec = load_geo_data(rec_streams_shp).drop('geometry', axis=1)
 
     ### Run through all nzreaches
     reaches_lst = []
@@ -66,7 +66,7 @@ def extract_catch(reaches, rec_catch_shp):
     Parameters
     ----------
     reaches : DataFrame
-        The output DataFrame from the find_upstream_rec function.
+        The output DataFrame from the find_upstream function.
     rec_catch_shp : str path, dict, or GeoDataFrame
         str path to the REC catchment shapefile, dict of pdsql.mssql.rd_sql parameters, or the equivelant GeoDataFrame.
 
@@ -105,7 +105,7 @@ def agg_catch(rec_catch):
     Parameters
     ----------
     rec_catch : GeoDataFrame
-        The output from extract_rec_catch
+        The output from extract_catch
 
     Returns
     -------
