@@ -6,7 +6,7 @@ Also included is a module that contains functions for catchment delineation of N
 
 Documentation
 --------------
-No docs yet...
+More detailed documentation can be found on the `project site <http://gistools.readthedocs.io>`_.
 
 Installation
 ------------
