@@ -37,7 +37,6 @@ pts['geometry'] = pts.geometry.simplify(1)
 
 def test_catch_delineate():
     poly1 = rec.catch_delineate(sites_shp_path, rec_streams_shp_path, rec_catch_shp_path, sites_col=sites_col_name, buffer_dis=400)
-    poly1.area
 
     assert (round(poly1.area[0]) == 422889430) &(round(poly1.area[1]) == 527399098)
 
