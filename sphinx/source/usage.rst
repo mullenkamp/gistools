@@ -1,28 +1,23 @@
-How to use ETo
-===============
+How to use gistools
+===================
 
-This section will describe how to use the ETo package. The ETo class and functions depend heavily on the Pandas package. Nearly all outputs are either as Pandas Series or DataFrames.
+This section will describe how to use the gistools package. The gistools functions depend heavily on the GeoPandas package. Nearly all outputs are either as Pandas DataFrames or GeoPandas GeoDataFrames.
 
-Initialising
-------------
-The package and general usage is via the main ETo class. It can be initialised without any initial input parameters.
+Import base module
+------------------
 
 .. code:: python
 
-    from eto import ETo, datasets
+    import gistools
     import pandas as pd
-
-    et1 = ETo()
 
 .. ipython:: python
    :suppress:
 
-   from eto import ETo, datasets
+   import gistools
    import pandas as pd
 
-   et1 = ETo()
-
-Parameter estimation
+General vector
 ---------------------
 The input data can be read into the class at initiatisation or via the param_est function.
 

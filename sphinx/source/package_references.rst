@@ -1,27 +1,41 @@
 Package References
 ===================
 
-Base class
---------------
+General vector functions
+------------------------
 
-.. autoclass:: eto.ETo
+.. autofunction:: gistools.vector.sel_sites_poly
 
-Parameter estimation
+.. autofunction:: gistools.vector.pts_poly_join
+
+.. autofunction:: gistools.vector.xy_to_gpd
+
+.. autofunction:: gistools.vector.points_grid_to_poly
+
+.. autofunction:: gistools.vector.closest_line_to_pts
+
+.. autofunction:: gistools.vector.multipoly_to_poly
+
+Raster functions
 --------------------
 
-.. automethod:: eto.ETo.param_est
+.. autofunction:: gistools.raster.save_geotiff
 
-ETo functions
----------------
+NIWA REC Functions
+------------------
 
-.. automethod:: eto.ETo.eto_fao
+.. autofunction:: gistools.rec.catch_delineate
 
-.. automethod:: eto.ETo.eto_hargreaves
+.. autofunction:: gistools.rec.find_upstream
+
+.. autofunction:: gistools.rec.extract_catch
+
+.. autofunction:: gistools.rec.agg_catch
 
 API Pages
 ---------
 
-.. currentmodule:: eto
+.. currentmodule:: gistools
 .. autosummary::
   :template: autosummary.rst
   :toctree: package_references/

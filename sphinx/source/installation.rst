@@ -1,12 +1,12 @@
 Installation
 =============
 
-ETo can be installed via pip or conda::
+gistools can be installed via pip or conda::
 
-  pip install eto
+  pip install gistools
 
 or::
 
-  conda install -c mullenkamp eto
+  conda install -c mullenkamp gistools
 
-The core dependency is `Pandas <http://pandas.pydata.org/pandas-docs/stable/>`_.
+The core dependencies are `Pandas <http://pandas.pydata.org/pandas-docs/stable/>`_, `geopandas <http://geopandas.org/>`_, `rasterio <https://rasterio.readthedocs.io/en/stable/>`_, and `pdsql <https://pdsql.readthedocs.io/en/latest/>`_.

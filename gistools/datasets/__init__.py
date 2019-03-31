@@ -4,7 +4,7 @@ import os
 __all__ = ['available', 'get_path']
 
 _module_path = os.path.dirname(__file__)
-_available_csv = {p.split('.')[0]: p for p in os.listdir(_module_path) if p.endswith('.csv')}
+_available_csv = {p.split('.')[0]: p for p in os.listdir(_module_path) if p.endswith('.shp')}
 available = list(_available_csv.keys())
 
 
@@ -15,8 +15,7 @@ def get_path(dataset):
     Parameters
     ----------
     dataset : str
-        The name of the dataset. See ``geopandas.datasets.available`` for
-        all options.
+        The name of the dataset. 
 
     """
     if dataset in _available_csv:
