@@ -6,12 +6,10 @@ channels:
 dependencies:
   - python=3.6
   # required
-  - pandas
   - geopandas
-  - shapely
-  - pycrsx
+  - pycrs
   - rasterio
-  - scipy
+  - pdsql
   # testing
   - pytest
   - pytest-cov
