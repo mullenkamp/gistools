@@ -25,7 +25,6 @@ def find_upstream(nzreach, rec_streams_shp):
     Returns
     -------
     DataFrame
-
     """
     if not isinstance(nzreach, (list, np.ndarray, pd.Series)):
         raise TypeError('nzreach must be a list, ndarray or Series.')
@@ -56,7 +55,7 @@ def find_upstream(nzreach, rec_streams_shp):
 
 
 ###############################################
-### Catch del using the REC
+### Catch delineation using the REC
 
 
 def extract_catch(reaches, rec_catch_shp):
@@ -118,7 +117,7 @@ def agg_catch(rec_catch):
     return rec_shed.reset_index()
 
 
-def catch_del(sites_shp, rec_streams_shp, rec_catch_shp, sites_col='site', buffer_dis=400, catch_output=None):
+def catch_delineate(sites_shp, rec_streams_shp, rec_catch_shp, sites_col='site', buffer_dis=400, catch_output=None):
     """
     Catchment delineation using the REC streams and catchments.
 

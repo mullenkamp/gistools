@@ -1,52 +1,98 @@
-How to use ETo
-===============
+How to use gistools
+===================
 
-This section will describe how to use the ETo package. The ETo class and functions depend heavily on the Pandas package. Nearly all outputs are either as Pandas Series or DataFrames.
+This section will describe how to use the gistools package. The gistools functions depend heavily on the GeoPandas package. Nearly all outputs are either as Pandas DataFrames or GeoPandas GeoDataFrames.
 
-Initialising
-------------
-The package and general usage is via the main ETo class. It can be initialised without any initial input parameters.
+Import base module
+------------------
+Import the base modules and necessary parameters for the examples.
 
 .. code:: python
 
-    from eto import ETo, datasets
-    import pandas as pd
+    import gistools
 
-    et1 = ETo()
+    ####################################
+    ### Parameters
+
+    sites_shp = 'flow_recorders_pareora'
+    rec_streams_shp = 'rec_streams_pareora'
+    rec_catch_shp = 'rec_catch_pareora'
+    catch_shp = 'catchment_pareora'
+
+    sites_shp_path = gistools.datasets.get_path(sites_shp)
+    rec_streams_shp_path = gistools.datasets.get_path(rec_streams_shp)
+    rec_catch_shp_path = gistools.datasets.get_path(rec_catch_shp)
+    catch_shp_path = gistools.datasets.get_path(catch_shp)
+
+    sites_col_name = 'SITENUMBER'
+    poly_col_name = 'Catchmen_1'
+    line_site_col = 'NZREACH'
 
 .. ipython:: python
    :suppress:
 
-   from eto import ETo, datasets
-   import pandas as pd
+   import gistools
 
-   et1 = ETo()
+   ####################################
+   ### Parameters
 
-Parameter estimation
+   sites_shp = 'flow_recorders_pareora'
+   rec_streams_shp = 'rec_streams_pareora'
+   rec_catch_shp = 'rec_catch_pareora'
+   catch_shp = 'catchment_pareora'
+
+   sites_shp_path = gistools.datasets.get_path(sites_shp)
+   rec_streams_shp_path = gistools.datasets.get_path(rec_streams_shp)
+   rec_catch_shp_path = gistools.datasets.get_path(rec_catch_shp)
+   catch_shp_path = gistools.datasets.get_path(catch_shp)
+
+   sites_col_name = 'SITENUMBER'
+   poly_col_name = 'Catchmen_1'
+   line_site_col = 'NZREACH'
+
+
+General vector tools
 ---------------------
-The input data can be read into the class at initiatisation or via the param_est function.
-
-We first need to get an example dataset and read it in via pd.read_csv.
+A utility function provides a similar function to the GeoPandas read_file, but also works with pdsql.
 
 .. ipython:: python
 
-    ex1_path = datasets.get_path('example1')
-    tsdata = pd.read_csv(ex1_path, parse_dates=True, infer_datetime_format=True, index_col='date')
-    tsdata.head()
+    pts = gistools.util.load_geo_data(sites_shp_path)
+    pts['geometry'] = pts.geometry.simplify(1)
 
-Now we can run the parameter estimation using the newly loaded in dataset using the default parameters.
-
-.. ipython:: python
-
-    et1.param_est(tsdata)
-    et1.ts_param.head()
-
-
-Calculate ETo
--------------
-Now it's just a matter of running the specific ETo function. For example, the FAO ETo.
+Converting a DataFrame with x and y coordinates to a GeoDataFrame:
 
 .. ipython:: python
 
-    eto1 = et1.eto_fao()
-    eto1.head()
+    pts_df = pts[[sites_col_name, 'geometry']].copy()
+    pts_df['x'] = pts_df.geometry.x
+    pts_df['y'] = pts_df.geometry.y
+    pts_df.drop('geometry', axis=1, inplace=True)
+
+    pts3 = gistools.vector.xy_to_gpd(sites_col_name, 'x', 'y', pts_df)
+
+Selecting points from within a polygon:
+
+.. ipython:: python
+
+    pts1 = gistools.vector.sel_sites_poly(sites_shp_path, rec_catch_shp_path, buffer_dis=10)
+
+Joining the attributes of a polygon to points:
+
+.. ipython:: python
+
+    pts2, poly2 = gistools.vector.pts_poly_join(sites_shp_path, catch_shp_path, poly_col_name)
+
+Find the closest line segment to points:
+
+.. ipython:: python
+
+    line1 = gistools.vector.closest_line_to_pts(sites_shp_path, rec_streams_shp_path, line_site_col, buffer_dis=100)
+
+Catchment delineation of NIWA REC network
+-----------------------------------------
+There are several functions that build to the final catch_delineate function. I will only provide an example of the final catchment delineation function. For each point, a polygon is created to represent the delineated catchment above that point.
+
+.. ipython:: python
+
+    poly1 = gistools.rec.catch_delineate(sites_shp_path, rec_streams_shp_path, rec_catch_shp_path, sites_col=sites_col_name, buffer_dis=400)
