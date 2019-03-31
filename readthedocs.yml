@@ -4,5 +4,5 @@ formats:
 conda:
     file: sphinx/env.yml
 python:
-    version: 3
-    setup_py_install: False
+    version: 3.6
+    setup_py_install: True
