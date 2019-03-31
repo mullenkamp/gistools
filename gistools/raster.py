@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 from rasterio import open as ras_open
 from rasterio import transform
-from pycrsx.utils import convert_crs
+from gistools.util import convert_crs
 
 
 def save_geotiff(df, data_col, crs, x_col='x', y_col='y', time_col=None, nfiles='many', grid_res=None, export_path='geotiff.tif', ):

@@ -2,15 +2,64 @@
 """
 Functions to delineate catchments.
 """
-from gistools.network import find_upstream_rec
+import numpy as np
+import pandas as pd
 from gistools.vector import closest_line_to_pts
 from gistools.util import load_geo_data
+
+#####################################################
+#### MFE REC streams network
+
+
+def find_upstream(nzreach, rec_streams_shp):
+    """
+    Function to estimate all of the reaches (and nodes) upstream of specific reaches.
+
+    Parameters
+    ----------
+    nzreach : list, ndarray, Series of int
+        The NZ reach IDs
+    rec_streams_shp : str path or GeoDataFrame
+        str path to the REC streams shapefile or the equivelant GeoDataFrame.
+
+    Returns
+    -------
+    DataFrame
+
+    """
+    if not isinstance(nzreach, (list, np.ndarray, pd.Series)):
+        raise TypeError('nzreach must be a list, ndarray or Series.')
+
+    ### Parameters
+#    server = 'SQL2012PROD05'
+#    db = 'GIS'
+#    table = 'MFE_NZTM_REC'
+#    cols = ['NZREACH', 'NZFNODE', 'NZTNODE']
+#
+#    ### Load data
+    rec = load_geo_data(rec_streams_shp)
+
+    ### Run through all nzreaches
+    reaches_lst = []
+    for i in nzreach:
+        reach1 = rec[rec.NZREACH == i]
+        up1 = rec[rec.NZTNODE.isin(reach1.NZFNODE)]
+        while not up1.empty:
+            reach1 = pd.concat([reach1, up1])
+            up1 = rec[rec.NZTNODE.isin(up1.NZFNODE)]
+        reach1.loc[:, 'start'] = i
+        reaches_lst.append(reach1)
+
+    reaches = pd.concat(reaches_lst)
+    reaches.set_index('start', inplace=True)
+    return reaches
+
 
 ###############################################
 ### Catch del using the REC
 
 
-def extract_rec_catch(reaches, rec_catch_shp):
+def extract_catch(reaches, rec_catch_shp):
     """
     Function to extract the catchment polygons from the rec catchments layer. Appends to reaches layer.
 
@@ -49,7 +98,7 @@ def extract_rec_catch(reaches, rec_catch_shp):
     return catch3
 
 
-def agg_rec_catch(rec_catch):
+def agg_catch(rec_catch):
     """
     Simple function to aggregate rec catchments.
 
@@ -69,7 +118,7 @@ def agg_rec_catch(rec_catch):
     return rec_shed.reset_index()
 
 
-def rec_catch_del(sites_shp, rec_streams_shp, rec_catch_shp, sites_col='site', buffer_dis=400, catch_output=None):
+def catch_del(sites_shp, rec_streams_shp, rec_catch_shp, sites_col='site', buffer_dis=400, catch_output=None):
     """
     Catchment delineation using the REC streams and catchments.
 
@@ -112,13 +161,13 @@ def rec_catch_del(sites_shp, rec_streams_shp, rec_catch_shp, sites_col='site', b
     nzreach = pts_seg.copy().NZREACH.unique()
 
     ### Find all upstream reaches
-    reaches = find_upstream_rec(nzreach, rec_streams_shp=rec_streams)
+    reaches = find_upstream(nzreach, rec_streams_shp=rec_streams)
 
     ### Extract associated catchments
-    rec_catch = extract_rec_catch(reaches, rec_catch_shp=rec_catch)
+    rec_catch = extract_catch(reaches, rec_catch_shp=rec_catch)
 
     ### Aggregate individual catchments
-    rec_shed = agg_rec_catch(rec_catch)
+    rec_shed = agg_catch(rec_catch)
     rec_shed.columns = ['NZREACH', 'geometry', 'area']
     rec_shed1 = rec_shed.merge(pts_seg.drop('geometry', axis=1), on='NZREACH')
 
