@@ -7,6 +7,7 @@ import pandas as pd
 import geopandas as gpd
 from geopandas.tools import sjoin
 from shapely.geometry import Point, Polygon
+from gistools.util import load_geo_data
 from pycrs import parse
 
 
@@ -34,28 +35,8 @@ def sel_sites_poly(pts, poly, buffer_dis=0):
     """
 
     #### Read in data
-    if isinstance(pts, (gpd.GeoDataFrame, gpd.GeoSeries)):
-        gdf_pts = pts.copy()
-    elif isinstance(pts, str):
-        if pts.endswith('.shp'):
-            gdf_pts = gpd.read_file(pts).copy()
-            col1 = gdf_pts.columns.drop('geometry')[0]
-            gdf_pts.set_index(col1, inplace=True)
-        else:
-            raise ValueError('pts must be a GeoDataFrame, GeoSeries, or a str path to a shapefile')
-    else:
-        raise ValueError('pts must be a GeoDataFrame, GeoSeries, or a str path to a shapefile')
-    if isinstance(poly, (gpd.GeoDataFrame, gpd.GeoSeries)):
-        gdf_poly = poly.copy()
-    elif isinstance(poly, str):
-        if poly.endswith('.shp'):
-            gdf_poly = gpd.read_file(poly).copy()
-            col2 = gdf_poly.columns.drop('geometry')[0]
-            gdf_poly.set_index(col2, inplace=True)
-        else:
-            raise ValueError('poly must be a GeoDataFrame, GeoSeries, or a str path to a shapefile')
-    else:
-        raise ValueError('poly must be a GeoDataFrame, GeoSeries, or a str path to a shapefile')
+    gdf_pts = load_geo_data(pts)
+    gdf_poly = load_geo_data(poly)
 
     #### Perform vector operations for initial processing
     ## Dissolve polygons by id
@@ -87,15 +68,19 @@ def pts_poly_join(pts, poly, poly_id_col):
     -------
     GeoDataFrame
     """
+    #### Read in data
+    gdf_pts = load_geo_data(pts)
+    gdf_poly = load_geo_data(poly)
+
     if isinstance(poly_id_col, str):
         poly_id_col = [poly_id_col]
     cols = poly_id_col.copy()
     cols.extend(['geometry'])
-    poly2 = poly[cols].copy()
+    poly2 = gdf_poly[cols].copy()
     poly3 = poly2.dissolve(poly_id_col).reset_index()
 
-    join1 = sjoin(pts.copy(), poly3.copy(), how='inner', op='within')
-    cols = set(pts.columns)
+    join1 = sjoin(gdf_pts.copy(), poly3.copy(), how='inner', op='within')
+    cols = set(gdf_pts.columns)
     cols.update(set(poly3.columns))
     join1.drop([i for i in join1.columns if i not in cols], axis=1, inplace=True)
 
@@ -239,25 +224,29 @@ def closest_line_to_pts(pts, lines, line_site_col, buffer_dis=None):
     -------
     GeoDataFrame
     """
+    ## Load data
+    gdf_pts = load_geo_data(pts)
+    gdf_lines = load_geo_data(lines)
 
+    ## Process data
     pts_line_seg = gpd.GeoDataFrame()
-    for i in pts.index:
-        pts_seg = pts.loc[[i]]
+    for i in gdf_pts.index:
+        pts_seg = gdf_pts.loc[[i]]
         if isinstance(buffer_dis, int):
             bound = pts_seg.buffer(buffer_dis).unary_union
-            lines1 = lines[lines.intersects(bound)]
+            lines1 = gdf_lines[gdf_lines.intersects(bound)]
         else:
-            lines1 = lines.copy()
+            lines1 = gdf_lines.copy()
         if lines1.empty:
             continue
-        near1 = lines1.distance(pts.geometry[i]).idxmin()
+        near1 = lines1.distance(gdf_pts.geometry[i]).idxmin()
         line_seg1 = lines1.loc[near1, line_site_col]
         pts_seg[line_site_col] = line_seg1
         pts_line_seg = pd.concat([pts_line_seg, pts_seg])
     #        print(i)
 
     ### Determine points that did not find a line
-    mis_pts = pts.loc[~pts.index.isin(pts_line_seg.index)]
+    mis_pts = gdf_pts.loc[~gdf_pts.index.isin(pts_line_seg.index)]
     if not mis_pts.empty:
         print(mis_pts)
         print('Did not find a line segment for these sites')

@@ -4,14 +4,12 @@ channels:
   - mullenkamp
   - defaults
 dependencies:
-  - python=3.6
+  - python=3.7
   # required
-  - pandas
   - geopandas
-  - shapely
-  - pycrsx
+  - pycrs
   - rasterio
-  - scipy
+  - pdsql
   # testing
   - pytest
   - pytest-cov

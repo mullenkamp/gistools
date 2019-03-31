@@ -4,7 +4,6 @@ Network processing and analysis functions.
 """
 import numpy as np
 import pandas as pd
-import geopandas as gpd
 try:
     import networkx as nx
 except ImportError:
@@ -100,61 +99,3 @@ def up_branch(df, index_col=1):
 
     output1 = pd.DataFrame(catch_set2, index=index1)
     return output1
-
-
-#####################################################
-#### MFE REC streams network
-
-
-def find_upstream_rec(nzreach, rec_streams_shp):
-    """
-    Function to estimate all of the reaches (and nodes) upstream of specific reaches.
-
-    Parameters
-    ----------
-    nzreach : list, ndarray, Series of int
-        The NZ reach IDs
-    rec_streams_shp : str path or GeoDataFrame
-        str path to the REC streams shapefile or the equivelant GeoDataFrame.
-
-    Returns
-    -------
-    DataFrame
-
-    """
-    if not isinstance(nzreach, (list, np.ndarray, pd.Series)):
-        raise TypeError('nzreach must be a list, ndarray or Series.')
-
-    ### Parameters
-#    server = 'SQL2012PROD05'
-#    db = 'GIS'
-#    table = 'MFE_NZTM_REC'
-#    cols = ['NZREACH', 'NZFNODE', 'NZTNODE']
-#
-#    ### Load data
-#    rec = rd_sql(server, db, table, cols)
-    if isinstance(rec_streams_shp, gpd.GeoDataFrame):
-        rec = rec_streams_shp.copy().drop('geometry', axis=1)
-    elif isinstance(rec_streams_shp, pd.DataFrame):
-        rec = rec_streams_shp.copy()
-    elif isinstance(rec_streams_shp, str):
-        if rec_streams_shp.endswith('shp'):
-            rec = gpd.read_file(rec_streams_shp).drop('geometry', axis=1)
-    else:
-        raise TypeError('rec_shp must be a GeoDataFrame, DataFrame, or shapefile path')
-
-    ### Run through all nzreaches
-    reaches_lst = []
-    for i in nzreach:
-        reach1 = rec[rec.NZREACH == i]
-        up1 = rec[rec.NZTNODE.isin(reach1.NZFNODE)]
-        while not up1.empty:
-            reach1 = pd.concat([reach1, up1])
-            up1 = rec[rec.NZTNODE.isin(up1.NZFNODE)]
-        reach1.loc[:, 'start'] = i
-        reaches_lst.append(reach1)
-
-    reaches = pd.concat(reaches_lst)
-    reaches.set_index('start', inplace=True)
-    return reaches
-
