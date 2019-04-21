@@ -8,7 +8,6 @@ dependencies:
   # required
   - geopandas
   - pycrs
-  - rasterio
   - pdsql
   # testing
   - pytest

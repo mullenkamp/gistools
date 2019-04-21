@@ -5,8 +5,11 @@ Raster and spatial interpolation functions.
 import os
 import pandas as pd
 import numpy as np
-from rasterio import open as ras_open
-from rasterio import transform
+try:
+    from rasterio import open as ras_open
+    from rasterio import transform
+except:
+    print('Install rasterio for raster functions')
 from gistools.util import convert_crs
 
 
