@@ -117,7 +117,7 @@ def agg_catch(rec_catch):
     return rec_shed.reset_index()
 
 
-def catch_delineate(sites_shp, rec_streams_shp, rec_catch_shp, sites_col='site', buffer_dis=400, catch_output=None):
+def catch_delineate(sites_shp, rec_streams_shp, rec_catch_shp, buffer_dis=400):
     """
     Catchment delineation using the REC streams and catchments.
 
@@ -170,9 +170,7 @@ def catch_delineate(sites_shp, rec_streams_shp, rec_catch_shp, sites_col='site',
     rec_shed.columns = ['NZREACH', 'geometry', 'area']
     rec_shed1 = rec_shed.merge(pts_seg.drop('geometry', axis=1), on='NZREACH')
 
-    ### Export and return
-    if catch_output is not None:
-        rec_shed1.to_file(catch_output)
+    ### Return
     return rec_shed1
 
 
