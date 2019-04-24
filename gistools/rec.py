@@ -153,7 +153,7 @@ def catch_delineate(sites_shp, rec_streams_shp, rec_catch_shp, buffer_dis=400):
 
     ### make mods
     for i in mods:
-        rec_streams.loc[rec_streams['NZREACH'] == i, mods[i].keys()] = mods[i].values()
+        rec_streams.loc[rec_streams['NZREACH'] == i, list(mods[i].keys())] = list(mods[i].values())
 
     ### Find closest REC segment to points
     pts_seg = closest_line_to_pts(pts, rec_streams, line_site_col='NZREACH', buffer_dis=buffer_dis)
