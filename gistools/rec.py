@@ -117,7 +117,7 @@ def agg_catch(rec_catch):
     return rec_shed.reset_index()
 
 
-def catch_delineate(sites_shp, rec_streams_shp, rec_catch_shp, buffer_dis=400):
+def catch_delineate(sites_shp, rec_streams_shp, rec_catch_shp, max_distance=1000):
     """
     Catchment delineation using the REC streams and catchments.
 
@@ -156,7 +156,7 @@ def catch_delineate(sites_shp, rec_streams_shp, rec_catch_shp, buffer_dis=400):
         rec_streams.loc[rec_streams['NZREACH'] == i, list(mods[i].keys())] = list(mods[i].values())
 
     ### Find closest REC segment to points
-    pts_seg = closest_line_to_pts(pts, rec_streams, line_site_col='NZREACH', buffer_dis=buffer_dis)
+    pts_seg = closest_line_to_pts(pts, rec_streams, line_site_col='NZREACH', max_distance=max_distance)
     nzreach = pts_seg.copy().NZREACH.unique()
 
     ### Find all upstream reaches
