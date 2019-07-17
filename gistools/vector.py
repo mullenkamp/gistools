@@ -205,7 +205,7 @@ def points_grid_to_poly(geodataframe, id_col):
     return gpd2
 
 
-def closest_line_to_pts(pts, lines, line_site_col, buffer_dis=None):
+def closest_line_to_pts(pts, lines, line_site_col, max_distance=1000):
     """
     Function to determine the line closest to each point. Inputs must be GeoDataframes.
 
@@ -232,11 +232,14 @@ def closest_line_to_pts(pts, lines, line_site_col, buffer_dis=None):
     pts_line_seg = gpd.GeoDataFrame()
     for i in gdf_pts.index:
         pts_seg = gdf_pts.loc[[i]]
-        if isinstance(buffer_dis, int):
-            bound = pts_seg.buffer(buffer_dis).unary_union
+        dis = 50
+        while dis < max_distance:
+            bound = pts_seg.buffer(dis).unary_union
             lines1 = gdf_lines[gdf_lines.intersects(bound)]
-        else:
-            lines1 = gdf_lines.copy()
+            if lines1.empty:
+                dis = dis + 50
+            else:
+                break
         if lines1.empty:
             continue
         near1 = lines1.distance(gdf_pts.geometry[i]).idxmin()
