@@ -194,15 +194,15 @@ def points_grid_to_poly(geodataframe, id_col):
     -------
     GeoDataFrame
     """
+    gdf1 = geodataframe.copy()
 
-    geo1a = pd.Series(geodataframe.geometry.apply(lambda j: j.x))
+    geo1a = pd.Series(gdf1.geometry.apply(lambda j: j.x))
     geo1b = geo1a.shift()
 
     side_len1 = (geo1b - geo1a).abs()
     side_len = side_len1[side_len1 > 0].min()
-    gpd1 = geodataframe.apply(lambda j: point_to_poly_apply(j.geometry, side_len=side_len), axis=1)
-    gpd2 = gpd.GeoDataFrame(gpd1[id_col], geometry=gpd1, crs=gpd1.crs)
-    return gpd2
+    gdf1['geometry'] = gdf1.apply(lambda j: point_to_poly_apply(j.geometry, side_len=side_len), axis=1)
+    return gdf1
 
 
 def closest_line_to_pts(pts, lines, line_site_col, max_distance=1000):
