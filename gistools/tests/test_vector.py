@@ -56,9 +56,6 @@ def test_xy_to_gpd():
     assert (len(pts3) == 2) & isinstance(pts3, gpd.GeoDataFrame)
 
 def closest_line_to_pts():
-    line1 = vector.closest_line_to_pts(sites_shp_path, rec_streams_shp_path, line_site_col, buffer_dis=100)
+    line1 = vector.closest_line_to_pts(sites_shp_path, rec_streams_shp_path, line_site_col)
 
     assert (len(line1) == 2) & isinstance(line1, gpd.GeoDataFrame) & line1[line_site_col].notnull().all()
-
-
-
