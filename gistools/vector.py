@@ -9,10 +9,41 @@ from geopandas.tools import sjoin
 from shapely.geometry import Point, Polygon
 from gistools.util import load_geo_data
 from pycrs import parse
-
+from scipy.spatial import cKDTree
 
 #########################################
 ### Functions
+
+
+def ckd_nearest(gdf_from, gdf_to, id_col, max_distance=np.inf):
+    """
+    Function to find the nearest point from gdf_from to gdf_to given an id_col in gdf_to.
+
+    Parameters
+    ----------
+    gdf_from : GeoSeries or GeoDataFrame
+        Source points.
+    gdf_to : GeoDataFrame
+        Points to find the nearest to gdf_from.
+    id_col : str
+        The ID column in gdf_to as an identifier.
+    max_distance : non-negative float, optional
+        Return only neighbors within this distance. This is used to prune tree searches, so if you are doing a series of nearest-neighbor queries, it may help to supply the distance to the nearest neighbor of the most recent point.
+
+    Returns
+    -------
+    GeoDataFrame
+    """
+    new_gdf = gdf_from.copy()
+    nA = np.array(list(zip(gdf_from.geometry.x, gdf_from.geometry.y)))
+    nB = np.array(list(zip(gdf_to.geometry.x, gdf_to.geometry.y)))
+    btree = cKDTree(nB)
+    dist, idx = btree.query(nA, k=1, distance_upper_bound=max_distance)
+
+    new_gdf['distance'] = dist.astype(int)
+    new_gdf[id_col] = gdf_to.reset_index(drop=True).loc[idx, id_col].values
+
+    return new_gdf
 
 
 def sel_sites_poly(pts, poly, buffer_dis=0):
