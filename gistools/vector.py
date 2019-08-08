@@ -17,7 +17,7 @@ from scipy.spatial import cKDTree
 
 def kd_nearest(gdf_from, gdf_to, id_col, max_distance=np.inf):
     """
-    Function to find the nearest point from gdf_from to gdf_to given an id_col in gdf_to.
+    Function to find the nearest point from gdf_from to gdf_to given an id_col in gdf_to. Uses the scipy function cKDTree.
 
     Parameters
     ----------

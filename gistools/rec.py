@@ -4,7 +4,7 @@ Functions to delineate catchments.
 """
 import numpy as np
 import pandas as pd
-from gistools.vector import closest_line_to_pts
+from gistools.vector import kd_nearest
 from gistools.util import load_geo_data
 
 #####################################################
@@ -117,7 +117,7 @@ def agg_catch(rec_catch):
     return rec_shed.reset_index()
 
 
-def catch_delineate(sites_shp, rec_streams_shp, rec_catch_shp, max_distance=1000):
+def catch_delineate(sites_shp, rec_streams_shp, rec_catch_shp, max_distance=np.inf):
     """
     Catchment delineation using the REC streams and catchments.
 
@@ -150,13 +150,17 @@ def catch_delineate(sites_shp, rec_streams_shp, rec_catch_shp, max_distance=1000
     rec_catch = load_geo_data(rec_catch_shp)
     rec_streams = load_geo_data(rec_streams_shp)
     pts = load_geo_data(sites_shp)
+    pts['geometry'] = pts.geometry.simplify(1)
 
     ### make mods
     for i in mods:
         rec_streams.loc[rec_streams['NZREACH'] == i, list(mods[i].keys())] = list(mods[i].values())
 
     ### Find closest REC segment to points
-    pts_seg = closest_line_to_pts(pts, rec_streams, line_site_col='NZREACH', max_distance=max_distance)
+    rec_pts1 = rec_streams.copy()
+    rec_pts1['geometry'] = rec_streams.centroid
+
+    pts_seg = kd_nearest(pts, rec_pts1, 'NZREACH', max_distance=max_distance)
     nzreach = pts_seg.copy().NZREACH.unique()
 
     ### Find all upstream reaches
