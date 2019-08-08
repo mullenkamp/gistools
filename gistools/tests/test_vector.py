@@ -33,6 +33,9 @@ line_site_col = 'NZREACH'
 
 pts = util.load_geo_data(sites_shp_path)
 pts['geometry'] = pts.geometry.simplify(1)
+rec_streams1 = util.load_geo_data(rec_streams_shp_path)
+rec_pts1 = rec_streams1.copy()
+rec_pts1['geometry'] = rec_streams1.centroid
 
 
 def test_sel_sites_poly():
@@ -55,10 +58,23 @@ def test_xy_to_gpd():
 
     assert (len(pts3) == 2) & isinstance(pts3, gpd.GeoDataFrame)
 
-def closest_line_to_pts():
-    line1 = vector.closest_line_to_pts(sites_shp_path, rec_streams_shp_path, line_site_col, buffer_dis=100)
+def test_closest_line_to_pts():
+    line1 = vector.closest_line_to_pts(sites_shp_path, rec_streams_shp_path, line_site_col)
 
     assert (len(line1) == 2) & isinstance(line1, gpd.GeoDataFrame) & line1[line_site_col].notnull().all()
+
+
+def test_kd_nearest():
+    line2 = vector.kd_nearest(pts, rec_pts1, line_site_col)
+
+    assert (len(line2) == 2) & isinstance(line2, gpd.GeoDataFrame) & line2[line_site_col].notnull().all()
+
+
+
+
+
+
+
 
 
 
