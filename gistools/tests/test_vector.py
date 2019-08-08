@@ -58,13 +58,13 @@ def test_xy_to_gpd():
 
     assert (len(pts3) == 2) & isinstance(pts3, gpd.GeoDataFrame)
 
-def closest_line_to_pts():
+def test_closest_line_to_pts():
     line1 = vector.closest_line_to_pts(sites_shp_path, rec_streams_shp_path, line_site_col)
 
     assert (len(line1) == 2) & isinstance(line1, gpd.GeoDataFrame) & line1[line_site_col].notnull().all()
 
 
-def kd_nearest():
+def test_kd_nearest():
     line2 = vector.kd_nearest(pts, rec_pts1, line_site_col)
 
     assert (len(line2) == 2) & isinstance(line2, gpd.GeoDataFrame) & line2[line_site_col].notnull().all()
