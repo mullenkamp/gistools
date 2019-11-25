@@ -144,7 +144,7 @@ def catch_delineate(sites_shp, rec_streams_shp, rec_catch_shp, max_distance=np.i
 
 
     ### Modifications {NZREACH: {NZTNODE/NZFNODE: node # to change}}
-    mods = {13053151: {'NZTNODE': 13055874}, 13048353: {'NZTNODE': 13048851}, 13048498: {'NZTNODE': 13048851}}
+    mods = {13053151: {'NZTNODE': 13055874}, 13048353: {'NZTNODE': 13048851}, 13048498: {'NZTNODE': 13048851}, 13048490: {'ORDER_': 3}}
 
     ### Load data
     rec_catch = load_geo_data(rec_catch_shp)
