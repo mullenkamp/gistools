@@ -36,7 +36,7 @@ def find_upstream(nzreach, rec_streams_shp):
 #    cols = ['NZREACH', 'NZFNODE', 'NZTNODE']
 #
 #    ### Load data
-    rec = load_geo_data(rec_streams_shp).drop('geometry', axis=1)
+    rec = load_geo_data(rec_streams_shp).drop('geometry', axis=1).copy()
 
     ### Run through all nzreaches
     reaches_lst = []
@@ -67,7 +67,7 @@ def extract_catch(reaches, rec_catch_shp):
     reaches : DataFrame
         The output DataFrame from the find_upstream function.
     rec_catch_shp : str path, dict, or GeoDataFrame
-        str path to the REC catchment shapefile, dict of pdsql.mssql.rd_sql parameters, or the equivelant GeoDataFrame.
+        str path to the REC catchment shapefile or a GeoDataFrame.
 
     Returns
     -------
@@ -80,7 +80,7 @@ def extract_catch(reaches, rec_catch_shp):
 #    table = 'MFE_NZTM_RECWATERSHEDCANTERBURY'
 #    cols = ['NZREACH']
 #
-    sites = reaches.NZREACH.unique().astype('int32').tolist()
+    sites = reaches.NZREACH.unique().astype('int32')
 #
 #    ### Extract reaches from SQL
 #    catch1 = rd_sql(server, db, table, cols, where_col='NZREACH', where_val=sites, geo_col=True)
@@ -117,7 +117,7 @@ def agg_catch(rec_catch):
     return rec_shed.reset_index()
 
 
-def catch_delineate(sites_shp, rec_streams_shp, rec_catch_shp, max_distance=np.inf):
+def catch_delineate(sites_shp, rec_streams_shp, rec_catch_shp, max_distance=np.inf, site_delineate='all', returns='catch'):
     """
     Catchment delineation using the REC streams and catchments.
 
@@ -125,14 +125,16 @@ def catch_delineate(sites_shp, rec_streams_shp, rec_catch_shp, max_distance=np.i
     ----------
     sites_shp : str path or GeoDataFrame
         Points shapfile of the sites along the streams or the equivelant GeoDataFrame.
-    rec_streams_shp : str path, GeoDataFrame, or dict
+    rec_streams_shp : str path, GeoDataFrame
         str path to the REC streams shapefile, the equivelant GeoDataFrame, or a dict of parameters to read in an mssql table using the rd_sql function.
-    rec_catch_shp : str path, GeoDataFrame, or dict
+    rec_catch_shp : str path, GeoDataFrame
         str path to the REC catchment shapefile, the equivelant GeoDataFrame, or a dict of parameters to read in an mssql table using the rd_sql function.
-    sites_col : str
-        The column name of the site numbers in the sites_shp.
-    catch_output : str or None
-        The output polygon shapefile path of the catchment delineation.
+    max_distance : non-negative float, optional
+        Return only neighbors within this distance. This is used to prune tree searches, so if you are doing a series of nearest-neighbor queries, it may help to supply the distance to the nearest neighbor of the most recent point.
+    site_delineate : 'all' or 'between'
+        Whether the catchments should be dileated all the way to the top or only in between the sites.
+    returns : 'catch' or 'all'
+        Return only the catchment polygons or the catchments, reaches, and sites
 
     Returns
     -------
@@ -144,7 +146,7 @@ def catch_delineate(sites_shp, rec_streams_shp, rec_catch_shp, max_distance=np.i
 
 
     ### Modifications {NZREACH: {NZTNODE/NZFNODE: node # to change}}
-    mods = {13053151: {'NZTNODE': 13055874}, 13048353: {'NZTNODE': 13048851}, 13048498: {'NZTNODE': 13048851}, 13048490: {'ORDER_': 3}}
+    mods = {13053151: {'NZTNODE': 13055874}, 13048353: {'NZTNODE': 13048851}, 13048498: {'NZTNODE': 13048851}, 13048490: {'ORDER': 3}}
 
     ### Load data
     rec_catch = load_geo_data(rec_catch_shp)
@@ -166,6 +168,21 @@ def catch_delineate(sites_shp, rec_streams_shp, rec_catch_shp, max_distance=np.i
     ### Find all upstream reaches
     reaches = find_upstream(nzreach, rec_streams_shp=rec_streams)
 
+    ### Clip reaches to in-between sites if required
+    if site_delineate == 'between':
+        reaches1 = reaches.reset_index().copy()
+        reaches2 = reaches1.loc[reaches1.NZREACH.isin(reaches1.start.unique()), ['start', 'NZREACH']]
+        reaches2 = reaches2[reaches2.start != reaches2.NZREACH]
+
+        grp1 = reaches2.groupby('start')
+
+        for index, r in grp1:
+#            print(index, r)
+            r2 = reaches1[reaches1.start.isin(r.NZREACH)].NZREACH.unique()
+            reaches1 = reaches1[~((reaches1.start == index) & (reaches1.NZREACH.isin(r2)))]
+
+        reaches = reaches1.set_index('start').copy()
+
     ### Extract associated catchments
     rec_catch = extract_catch(reaches, rec_catch_shp=rec_catch)
 
@@ -175,14 +192,7 @@ def catch_delineate(sites_shp, rec_streams_shp, rec_catch_shp, max_distance=np.i
     rec_shed1 = rec_shed.merge(pts_seg.drop('geometry', axis=1), on='NZREACH')
 
     ### Return
-    return rec_shed1
-
-
-
-
-
-
-
-
-
-
+    if returns == 'catch':
+        return rec_shed1
+    else:
+        return rec_shed1, reaches, pts_seg

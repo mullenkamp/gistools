@@ -4,7 +4,6 @@ Utility functions.
 """
 from pycrs import parse
 import geopandas as gpd
-from pdsql import mssql
 
 #########################################
 ### Dictionaries for convert_crs
@@ -94,7 +93,7 @@ def load_geo_data(data):
     Parameters
     ----------
     data : str, dict, or GeoDataFrame
-        Must be either a shapefile path (as str), a GeoDataFrame, or a dict of parameters to be passed to pdsql.mssql.rd_sql.
+        Must be either a shapefile path (as str), or a GeoDataFrame.
 
     Returns
     -------
@@ -107,29 +106,5 @@ def load_geo_data(data):
             gpd1 = gpd.read_file(data)
         else:
             raise ValueError('If input is a str, then it must be a path to a shapefile.')
-    elif isinstance(data, dict):
-        data1 = data.copy()
-        data1.update({'geo_col': True})
-        gpd1 = mssql.rd_sql(**data1)
 
     return gpd1
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
