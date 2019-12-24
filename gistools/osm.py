@@ -8,9 +8,13 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 from scipy.spatial import cKDTree
-import overpass
 import copy
-import osm2geojson
+
+try:
+    import overpass
+    import osm2geojson
+except:
+    print('Install overpass and osm2geojson for osm module functions')
 
 #############################################
 ### Functions
