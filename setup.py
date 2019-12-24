@@ -10,7 +10,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 name = 'gistools'
 main_package = 'gistools'
 datasets = 'datasets'
-version = '1.2.1'
+version = '1.2.2'
 
 # The below code is for readthedocs. To have sphinx/readthedocs interact with
 # the contained package, readthedocs needs to build the package. But the dependencies
@@ -72,8 +72,8 @@ setup(
     #
     # This field corresponds to the "Description" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#description-optional
-    long_description=long_description,  # Optional
-    long_description_content_type='text/x-rst',
+    # long_description=long_description,  # Optional
+    # long_description_content_type='text/x-rst',
 
     # This should be a valid link to your project's main homepage.
     #

@@ -6,8 +6,7 @@ Created on Fri Aug  3 15:28:28 2018
 """
 import pandas as pd
 import geopandas as gpd
-import osm
-from gistools import util
+from gistools import util, osm
 from gistools.datasets import get_path
 
 pd.options.display.max_columns = 10
@@ -80,13 +79,3 @@ def test_pts_to_waterway_delineation():
     gdf1 = osm.pts_to_waterway_delineation(pts, sites_col_name, 500, 'between')
 
     assert (len(gdf1) == 4) & isinstance(gdf1, gpd.GeoDataFrame)
-
-
-
-
-
-
-
-
-
-
