@@ -38,7 +38,7 @@ pts['geometry'] = pts.geometry.simplify(1)
 
 
 def test_get_nearest():
-    pts1 = osm.get_nearest(pts, sites_col_name)
+    pts1 = osm.get_nearest_waterways(pts, sites_col_name)
 
     assert (len(pts1) == 2) & isinstance(pts1, gpd.GeoDataFrame)
 
@@ -76,6 +76,6 @@ def test_to_gdf():
 
 
 def test_pts_to_waterway_delineation():
-    gdf1 = osm.pts_to_waterway_delineation(pts, sites_col_name, 500, 'between')
+    pts1, gdf1 = osm.pts_to_waterway_delineation(pts, sites_col_name, 500, 'natural', 'between')
 
     assert (len(gdf1) == 4) & isinstance(gdf1, gpd.GeoDataFrame)

@@ -20,12 +20,33 @@ except:
 ### Functions
 
 
-def get_nearest(gdf_from, id_col, max_distance=500):
+def get_nearest_waterways(gdf_from, id_col, max_distance=500, waterway_type='natural'):
     """
+    Function to get the nearest waterways and associated nodes at some max distance from the OSM overpass server. Can specify the waterway type as either 'natural' or 'all'. The higher the max distance the slower the server query.
 
+    Parameters
+    ----------
+    gdf_from : GeoDataFrame
+        Locations of the sites where you want to find the nearest waterway nodes.
+    id_col : str
+        The column name of the site ID for gdf_from.
+    max_distance : int
+        The maximum search distance.
+    waterway_type : str
+        Either 'nautral' or 'all'
+
+    Returns
+    -------
+    GeoDataFrame
+        of the sites and associated waterys and nodes.
     """
-    q_base = """(way['waterway'](around:{dis}, {lat}, {lon});
+    if waterway_type == 'all':
+        q_base = """(way['waterway'](around:{dis}, {lat}, {lon});
     node(around:{dis}, {lat}, {lon})(w);)"""
+    elif waterway_type == 'natural':
+        q_base = "(way['waterway'~'(river|stream|tidal_channel)'](around:{dis}, {lat}, {lon}); node(around:{dis}, {lat}, {lon})(w);)"
+    else:
+        raise ValueError('waterway_type must be either natural or all.')
 
     from1 = gdf_from[[id_col, 'geometry']].copy()
 
@@ -69,12 +90,30 @@ def get_nearest(gdf_from, id_col, max_distance=500):
     return res1
 
 
-def get_waterways(osm_nodes_from):
+def get_waterways(osm_nodes_from, waterway_type='natural'):
     """
+    Function to get all the waterways connected by the node IDs derived from the get_nearest_waterways function from the OSM overpass server. Can specify the waterway type as either 'natural' or 'all'.
 
+    Parameters
+    ----------
+    osm_nodes_from : GeoDataFrame
+        Output GeoDataFrame from the get_nearest_waterways function with waterway nodes.
+    waterway_type : str
+        Either 'nautral' or 'all'.
+
+    Returns
+    -------
+    Two Dicts
+        of waterways and nodes.
     """
     q_node_base = "node({node});"
-    q_other_base = """complete {(way['waterway'](<); >;);};"""
+
+    if waterway_type == 'all':
+        q_other_base = """complete {(way['waterway'](<); >;);};"""
+    elif waterway_type == 'natural':
+        q_other_base = """complete {(way['waterway'~'(river|stream|tidal_channel)'](<); >;);};"""
+    else:
+        raise ValueError('waterway_type must be either natural or all.')
 
     api = overpass.API()
 
@@ -99,7 +138,21 @@ def get_waterways(osm_nodes_from):
 
 def waterway_delineation(osm_nodes_from, waterways, site_delineate='all'):
     """
+    Function to delineate the waterways above each of the sites/nodes originally derived by the get_nearest_waterways function. Optional to delineate all the way up the waterway network or between the sites.
 
+    Parameters
+    ----------
+    osm_nodes_from : GeoDataFrame
+        Output GeoDataFrame from the get_nearest_waterways function with waterway nodes.
+    waterways : dict
+        First output dict from the get_waterways function.
+    site_delineate : 'all' or 'between'
+        Whether the waterway network should be dileated all the way to the top or only in between the sites.
+
+    Returns
+    -------
+    Dict
+        of each site/node each continaing the associated waterways and nodes.
     """
     site_delin = {}
     for index, p in osm_nodes_from.iterrows():
@@ -158,7 +211,19 @@ def waterway_delineation(osm_nodes_from, waterways, site_delineate='all'):
 
 def to_osm(site_delin, nodes):
     """
+    Function to convert the output of the waterway_delineation function to a dict of dict in the OSM dict structure (for futher processing).
 
+    Parameters
+    ----------
+    site_delin : dict
+        Output of the waterway_delineation function.
+    nodes : dict
+        Second output of the get_waterways function.
+
+    Returns
+    -------
+    Dict
+        dict of dict in the OSM dict structure.
     """
     time1 = pd.Timestamp.now().isoformat()
 
@@ -182,7 +247,16 @@ def to_osm(site_delin, nodes):
 
 def to_gdf(osm_delin):
     """
+    Function to convert the output of the to_osm function to a GeoDataFrame of the waterways associated with the sites/nodes.
 
+    Parameters
+    ----------
+    osm_delin : dict
+        Output of the to_osm function.
+
+    Returns
+    -------
+    GeoDataFrame
     """
     shape1 = []
 
@@ -203,17 +277,37 @@ def to_nx():
     """
 
 
-def pts_to_waterway_delineation(gdf_from, id_col, max_distance=500, site_delineate='all'):
+def pts_to_waterway_delineation(gdf_from, id_col, max_distance=500, waterway_type='natural', site_delineate='all'):
     """
+    Function to fully perform the OSM waterway delineation process.
 
+    Parameters
+    ----------
+    Parameters
+    ----------
+    gdf_from : GeoDataFrame
+        Locations of the sites where you want to find the nearest waterway nodes.
+    id_col : str
+        The column name of the site ID for gdf_from.
+    max_distance : int
+        The maximum search distance.
+    waterway_type : str
+        Either 'nautral' or 'all'
+    site_delineate : 'all' or 'between'
+        Whether the waterway network should be dileated all the way to the top or only in between the sites.
+
+    Returns
+    -------
+    Two GeoDataFrames
+        The first is the GeoDataFrame of the nearest OSM waterway and node associated with the sites and the other is the one that contains the upstream delineated waterways.
     """
-    pts1 = get_nearest(gdf_from, id_col, max_distance)
-    waterways, nodes = get_waterways(pts1)
+    pts1 = get_nearest_waterways(gdf_from, id_col, max_distance, waterway_type)
+    waterways, nodes = get_waterways(pts1, waterway_type)
     site_delin = waterway_delineation(pts1, waterways, site_delineate)
     osm_delin = to_osm(site_delin, nodes)
     gdf1 = to_gdf(osm_delin)
 
-    return gdf1
+    return pts1, gdf1
 
 
 
