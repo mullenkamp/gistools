@@ -172,7 +172,7 @@ def waterway_delineation(osm_nodes_from, waterways, site_delineate='all'):
             if site_ww[p.waterway_id]['id'] in other_ww:
                 for o in list(other_nodes.keys()):
                     if o in site_ww_nodes:
-                        site_ww_nodes = site_ww_nodes[(site_ww_nodes.index(o)+1):]
+                        site_ww_nodes = site_ww_nodes[site_ww_nodes.index(o):]
                     other_nodes.pop(o)
 
         site_ww[p.waterway_id]['nodes'] = site_ww_nodes
@@ -196,7 +196,7 @@ def waterway_delineation(osm_nodes_from, waterways, site_delineate='all'):
                         ww_nodes = new_ww[n1]['nodes']
                         for id1 in other_nodes:
                             if id1 in ww_nodes:
-                                new_ww[n1]['nodes'] = ww_nodes[(ww_nodes.index(id1)+1):]
+                                new_ww[n1]['nodes'] = ww_nodes[ww_nodes.index(id1):]
                             other_nodes.pop(id1)
 
             site_ww.update({i: new_ww[i] for i in index1})
@@ -305,7 +305,7 @@ def pts_to_waterway_delineation(gdf_from, id_col, max_distance=500, waterway_typ
     waterways, nodes = get_waterways(pts1, waterway_type)
     site_delin = waterway_delineation(pts1, waterways, site_delineate)
     osm_delin = to_osm(site_delin, nodes)
-    gdf1 = to_gdf(osm_delin)
+    gdf1 = to_gdf(osm_delin).to_crs(pts1.crs)
 
     return pts1, gdf1
 
