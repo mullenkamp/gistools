@@ -17,6 +17,13 @@ except:
     print('Install overpass and osm2geojson for osm module functions')
 
 #############################################
+### Parameters
+
+op_endpoint = 'http://hp1802:12345/api/interpreter'
+op_endpoint = 'http://10.8.1.5/api/interpreter'
+
+
+#############################################
 ### Functions
 
 
@@ -57,7 +64,7 @@ def get_nearest_waterways(gdf_from, id_col, max_distance=500, waterway_type='nat
     from1['lon'] = pts1.geometry.x
     from1['lat'] = pts1.geometry.y
 
-    api = overpass.API()
+    api = overpass.API(endpoint=op_endpoint)
 
     res_list = []
     for index, p in from1.iterrows():
@@ -76,17 +83,17 @@ def get_nearest_waterways(gdf_from, id_col, max_distance=500, waterway_type='nat
         dist, idx = btree.query([p.x, p.y], k=1, distance_upper_bound=max_distance)
 
         best1 = gpd_nodes2.iloc[[idx]].copy()
-        best1['distance'] = int(dist)
+        best1['distance'] = round(dist, 2)
         best1[id_col] = p[id_col]
 
         ways1 = [n for n in response['elements'] if n['type'] == 'way']
-        this_way = [{'waterway_id': w['id'], 'waterway_name': w['tags']['name']} for w in ways1 if best1['id'].iloc[0] in w['nodes'][:-1]][0]
+        this_way = [{'waterway_id': w['id'], 'waterway_name': w['tags']['name']} for w in ways1 if best1['id'].iloc[0] in w['nodes'][1:]][0]
         best1['waterway_id'] = this_way['waterway_id']
         best1['waterway_name'] = this_way['waterway_name']
 
         res_list.append(best1)
 
-    res1 = pd.concat(res_list)
+    res1 = pd.concat(res_list, sort=False).reset_index(drop=True)
     return res1
 
 
@@ -109,13 +116,19 @@ def get_waterways(osm_nodes_from, waterway_type='natural'):
     q_node_base = "node({node});"
 
     if waterway_type == 'all':
-        q_other_base = """complete {(way['waterway'](<); >;);};"""
+        q_other_base = """complete {(way['waterway'](<);
+                            (>;);
+                            way['natural'='water'](<);
+                            (>;););}"""
     elif waterway_type == 'natural':
-        q_other_base = """complete {(way['waterway'~'(river|stream|tidal_channel)'](<); >;);};"""
+        q_other_base = """complete {(way['waterway'~'(river|stream|tidal_channel)'](<);
+                            (>;);
+                            way['natural'='water'](<);
+                            (>;););}"""
     else:
         raise ValueError('waterway_type must be either natural or all.')
 
-    api = overpass.API()
+    api = overpass.API(endpoint=op_endpoint)
 
     waterways = {}
     nodes = {}
@@ -128,7 +141,8 @@ def get_waterways(osm_nodes_from, waterway_type='natural'):
         q1 = q_node + q_other_base
 
         response = api.get(q1, responseformat='json')
-        ww1 = {ww['id']: ww for ww in response['elements'] if (ww['type'] == 'way') and (ww['nodes'][0] != ww['nodes'][-1])}
+#        ww1 = {ww['id']: ww for ww in response['elements'] if (ww['type'] == 'way') and (ww['nodes'][0] != ww['nodes'][-1])}
+        ww1 = {ww['id']: ww for ww in response['elements'] if (ww['type'] == 'way')}
         waterways.update(ww1)
         n1 = {n['id']: n for n in response['elements'] if n['type'] == 'node'}
         nodes.update(n1)
@@ -136,7 +150,7 @@ def get_waterways(osm_nodes_from, waterway_type='natural'):
     return waterways, nodes
 
 
-def waterway_delineation(osm_nodes_from, waterways, site_delineate='all'):
+def waterway_delineation(osm_nodes_from, waterways, site_delineate='all', only_waterways=True):
     """
     Function to delineate the waterways above each of the sites/nodes originally derived by the get_nearest_waterways function. Optional to delineate all the way up the waterway network or between the sites.
 
@@ -171,13 +185,19 @@ def waterway_delineation(osm_nodes_from, waterways, site_delineate='all'):
             other_ww = set(other_nodes.values())
             if site_ww[p.waterway_id]['id'] in other_ww:
                 for o in list(other_nodes.keys()):
-                    if o in site_ww_nodes:
+                    if o in site_ww_nodes.copy():
                         site_ww_nodes = site_ww_nodes[site_ww_nodes.index(o):]
                     other_nodes.pop(o)
 
         site_ww[p.waterway_id]['nodes'] = site_ww_nodes
 
-        ww_last = {ww[0]: ww[1]['nodes'][-1] for ww in new_wws.items()}
+#        ww_last = {ww[0]: ww[1]['nodes'][-1] for ww in new_wws.items()}
+        ww_last = {}
+        for i, ww in new_wws.items():
+            if 'waterway' in ww['tags']:
+                ww_last.update({i: [ww['nodes'][-1]]})
+            else:
+                ww_last.update({i: ww['nodes']})
 
         if len(site_ww_nodes1) == site_node_index:
             big_set = set(site_ww_nodes[:-1])
@@ -186,25 +206,35 @@ def waterway_delineation(osm_nodes_from, waterways, site_delineate='all'):
 
         set_len = len(big_set)
 
+        bigger_set = big_set.copy()
+
         while set_len > 0:
-            index1 = [ww[0] for ww in ww_last.items() if ww[1] in big_set]
+            index1 = [i for i, ww in ww_last.items() if np.in1d(ww, list(big_set)).any()]
             new_ww = {i: new_wws[i] for i in index1}
             if site_delineate == 'between':
-                if other_nodes:
-                    other_ww = set(other_nodes.values())
+                other_ww = set(other_nodes.values())
+                if np.in1d(list(other_ww), list(new_ww.keys())).any():
                     for n1 in other_ww:
                         ww_nodes = new_ww[n1]['nodes']
-                        for id1 in other_nodes:
+                        for id1 in other_nodes.copy():
                             if id1 in ww_nodes:
                                 new_ww[n1]['nodes'] = ww_nodes[ww_nodes.index(id1):]
                             other_nodes.pop(id1)
 
             site_ww.update({i: new_ww[i] for i in index1})
-            big_set = set()
-            [big_set.update(set(new_ww[i]['nodes'][:-1])) for i in index1]
+            bigger_set.update(big_set)
+            temp_set = set()
+            [temp_set.update(set(new_ww[i]['nodes'][:-1])) for i in index1]
+
+            big_set = temp_set.difference(bigger_set)
+
             set_len = len(big_set)
 
-        site_delin.update({p.id: site_ww})
+        if only_waterways:
+            site_ww1 = {i: s for i, s in site_ww.items() if 'waterway' in s['tags']}
+            site_delin.update({p.id: site_ww1})
+        else:
+            site_delin.update({p.id: site_ww})
 
     return site_delin
 
@@ -262,11 +292,12 @@ def to_gdf(osm_delin):
 
     for id1, osm1 in osm_delin.items():
         s1 = osm2geojson.json2shapes(osm1)
+        [s['properties']['tags'].update({'name': None}) for s in s1 if not 'name' in s['properties']['tags']]
         l1 = [[id1, s['properties']['id'], s['properties']['tags']['name'], s['properties']['tags']['waterway'], s['shape']] for s in s1]
         shape1.extend(l1)
 
     df1 = pd.DataFrame(shape1, columns=['start_node', 'way_id', 'name', 'waterway', 'geometry'])
-    gdf1 = gpd.GeoDataFrame(df1, crs=4326, geometry='geometry')
+    gdf1 = gpd.GeoDataFrame(df1, crs=4326, geometry='geometry').dissolve(['start_node', 'name']).reset_index()
 
     return gdf1
 
