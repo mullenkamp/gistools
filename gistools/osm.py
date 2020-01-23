@@ -19,8 +19,7 @@ except:
 #############################################
 ### Parameters
 
-op_endpoint = 'http://hp1802:12345/api/interpreter'
-op_endpoint = 'http://10.8.1.5/api/interpreter'
+op_endpoint = 'https://overpass-api.de/api/interpreter'
 
 
 #############################################

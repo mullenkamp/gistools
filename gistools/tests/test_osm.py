@@ -24,6 +24,8 @@ sites_shp_path = get_path(sites_shp)
 
 id_col = 'SITENUMBER'
 
+#osm.op_endpoint = 'http://10.8.1.5/api/interpreter'
+
 #sites_shp = 'opihi_limit_points'
 #
 #sites_shp_path = get_path(sites_shp)
