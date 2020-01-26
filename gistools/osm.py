@@ -347,7 +347,7 @@ def pts_to_waterway_delineation(gdf_from, id_col, max_distance=500, waterway_typ
     """
     pts1 = get_nearest_waterways(gdf_from, id_col, max_distance, waterway_type)
     waterways, nodes = get_waterways(pts1, waterway_type)
-    site_delin = waterway_delineation(pts1, waterways, site_delineate)
+    site_delin = waterway_delineation(waterways, site_delineate)
     osm_delin = to_osm(site_delin, nodes)
     gdf1 = to_gdf(osm_delin).to_crs(pts1.crs)
 
