@@ -48,12 +48,6 @@ id_col = 'SITENUMBER'
 gdf_from = util.load_geo_data(sites_shp_path)
 gdf_from['geometry'] = gdf_from.geometry.simplify(1)
 
-#q1 = get_nearest_waterways(pts.loc[[0]], sites_col_name)
-#
-#op_endpoint = 'http://hp1802:12345/api/interpreter'
-#
-#data = b'data=%5Bout%3Ajson%5D%3B%28way%5B%27waterway%27~%27%28river%7Cstream%7Ctidal_channel%29%27%5D%28around%3A500%2C+-44.41173986213191%2C+171.05708873335843%29%3B+node%28around%3A500%2C+-44.41173986213191%2C+171.05708873335843%29%28w%29%3B%29%3Bout+body%3B'
-
 
 def test_get_nearest():
     pts1 = osm.get_nearest_waterways(gdf_from, id_col)
@@ -72,11 +66,11 @@ waterways, nodes = osm.get_waterways(pts1)
 
 
 def test_waterway_delineation():
-    site_delin = osm.waterway_delineation(pts1, waterways, 'between')
+    site_delin = osm.waterway_delineation(waterways, True)
 
     assert (len(site_delin) == 2)
 
-site_delin = osm.waterway_delineation(pts1, waterways, 'between')
+site_delin = osm.waterway_delineation(waterways, True)
 
 
 def test_to_osm():
@@ -94,6 +88,6 @@ def test_to_gdf():
 
 
 def test_pts_to_waterway_delineation():
-    pts1, gdf1 = osm.pts_to_waterway_delineation(gdf_from, id_col, 500, 'natural', 'between')
+    pts1, gdf1 = osm.pts_to_waterway_delineation(gdf_from, id_col, 500, 'all', True)
 
     assert (len(gdf1) == 4) & isinstance(gdf1, gpd.GeoDataFrame)
