@@ -188,7 +188,10 @@ def waterway_delineation(waterways, site_delineate=False, only_waterways=True):
             site_ww = {node_way: ways[node_way].copy()}
             site_ww_nodes1 = site_ww[node_way]['nodes']
             site_node_index = site_ww_nodes1.index(node)+1
-            site_ww_nodes = site_ww_nodes1[:site_node_index]
+            if (site_node_index + 1) == len(site_ww_nodes1):
+                site_ww_nodes = site_ww_nodes1
+            else:
+                site_ww_nodes = site_ww_nodes1[:site_node_index]
 
             site_ww[node_way]['nodes'] = site_ww_nodes
 
@@ -238,13 +241,11 @@ def waterway_delineation(waterways, site_delineate=False, only_waterways=True):
                         if node_way2 in sw1.keys():
                             sw2 = site_delin[node2]
                             way1 = sw1[node_way2]['nodes']
-                            if node2 in way1:
+                            if (node2 in way1) and (node_way2 in sw2):
                                 other_way_ids = list(sw2.keys())
                                 other_way2 = sw2[node_way2]['nodes']
-                                if len(other_way2) >= len(way1):
-                                    continue
-                                elif (len(other_way2)+1) != len(way1):
-                                    new_way1 = way1[(way1.index(node2)+1):]
+                                if (len(other_way2)+1) < len(way1):
+                                    new_way1 = way1[(way1.index(node2)):]
                                     site_delin[node1][node_way2]['nodes'] = new_way1
                                     other_way_ids.remove(node_way2)
                                 [site_delin[node1].pop(w, None) for w in other_way_ids]
@@ -311,8 +312,9 @@ def to_gdf(osm_delin):
 
     df1 = pd.DataFrame(shape1, columns=['start_node', 'way_id', 'name', 'waterway', 'geometry'])
     gdf1 = gpd.GeoDataFrame(df1, crs=4326, geometry='geometry').dissolve(['start_node', 'way_id']).reset_index()
+    gdf2 = gdf1[gdf1.geom_type == 'LineString'].copy()
 
-    return gdf1
+    return gdf2
 
 
 def to_nx():
