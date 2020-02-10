@@ -393,7 +393,7 @@ def get_waterways_within_boundary(poly, buffer=0, waterway_type='all'):
     gdf2 = gdf1[gdf1.geom_type == 'LineString'].copy()
 
     ## Select rivers within polygon
-    gdf3 = gdf2[gdf2.intersects(poly2)].copy()
+    gdf3 = gdf2[gdf2.intersects(poly2)].to_crs(poly.crs).copy()
 
     ## Return
     return gdf3
