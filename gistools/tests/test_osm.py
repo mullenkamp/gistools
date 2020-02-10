@@ -65,7 +65,7 @@ pts1 = osm.get_nearest_waterways(gdf_from, id_col)
 def test_get_waterways():
     waterways, nodes = osm.get_waterways(pts1)
 
-    assert (len(waterways) >= 3) & (len(nodes) >= 318)
+    assert (len(waterways) >= 1) & (len(nodes) >= 318)
 
 waterways, nodes = osm.get_waterways(pts1)
 
@@ -104,4 +104,3 @@ def test_get_waterways_within_boundary():
     ww1 = osm.get_waterways_within_boundary(poly)
 
     assert (len(ww1) >= 4)
-
