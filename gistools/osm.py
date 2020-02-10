@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 from scipy.spatial import cKDTree
+from gistools import vector
 import copy
 
 try:
@@ -311,7 +312,8 @@ def to_gdf(osm_delin):
         shape1.extend(l1)
 
     df1 = pd.DataFrame(shape1, columns=['start_node', 'way_id', 'name', 'waterway', 'geometry'])
-    gdf1 = gpd.GeoDataFrame(df1, crs=4326, geometry='geometry').dissolve(['start_node', 'way_id']).reset_index()
+#    gdf1 = gpd.GeoDataFrame(df1, crs=4326, geometry='geometry').dissolve(['start_node', 'way_id']).reset_index()
+    gdf1 = gpd.GeoDataFrame(df1, crs='epsg:4326', geometry='geometry')
     gdf2 = gdf1[gdf1.geom_type == 'LineString'].copy()
 
     return gdf2
@@ -354,6 +356,53 @@ def pts_to_waterway_delineation(gdf_from, id_col, max_distance=500, waterway_typ
     gdf1 = to_gdf(osm_delin).to_crs(pts1.crs)
 
     return pts1, gdf1
+
+
+def get_waterways_within_boundary(poly, buffer=0, waterway_type='all'):
+    """
+
+    """
+    if waterway_type == 'all':
+        q_base = """way['waterway']({min_lat}, {min_lon}, {max_lat}, {max_lon});(._;>;);"""
+    elif waterway_type == 'natural':
+        q_base = """(way['waterway'~'(river|stream|tidal_channel)']({min_lat}, {min_lon}, {max_lat}, {max_lon});(._;>;);"""
+    else:
+        raise ValueError('waterway_type must be either natural or all.')
+
+    ## Prepare the polygon
+    poly1 = poly.to_crs('epsg:4326').copy()
+    poly1['geometry'] = poly1.buffer(buffer)
+    poly2 = poly1.unary_union
+    min_lon, min_lat, max_lon, max_lat = poly2.bounds
+
+    ## Query OSM
+    q1 = q_base.format(min_lon=min_lon, min_lat=min_lat, max_lon=max_lon, max_lat=max_lat)
+
+    api = overpass.API(endpoint=op_endpoint)
+
+    print('Overpass endpoint is: ' + op_endpoint)
+
+    response = api.get(q1, responseformat='json')
+
+    ## convert to gpd
+    s1 = osm2geojson.json2shapes(response)
+    [s['properties']['tags'].update({'name': 'No name'}) for s in s1 if not 'name' in s['properties']['tags']]
+    l1 = [[s['properties']['id'], s['properties']['tags']['name'], s['properties']['tags']['waterway'], s['shape']] for s in s1]
+    df1 = pd.DataFrame(l1, columns=['way_id', 'name', 'waterway', 'geometry'])
+    gdf1 = gpd.GeoDataFrame(df1, crs='epsg:4326', geometry='geometry')
+    gdf2 = gdf1[gdf1.geom_type == 'LineString'].copy()
+
+    ## Select rivers within polygon
+    gdf3 = gdf2[gdf2.intersects(poly2)].copy()
+
+    ## Return
+    return gdf3
+
+
+
+
+
+
 
 
 

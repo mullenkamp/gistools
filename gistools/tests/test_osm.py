@@ -24,6 +24,11 @@ sites_shp_path = get_path(sites_shp)
 
 id_col = 'SITENUMBER'
 
+poly_shp = 'catchment_pareora'
+
+poly_shp_path = get_path(poly_shp)
+
+
 #osm.op_endpoint = 'http://10.8.1.5/api/interpreter'
 
 #sites_shp = 'opihi_limit_points'
@@ -91,3 +96,12 @@ def test_pts_to_waterway_delineation():
     pts1, gdf1 = osm.pts_to_waterway_delineation(gdf_from, id_col, 500, 'all', True)
 
     assert (len(gdf1) == 4) & isinstance(gdf1, gpd.GeoDataFrame)
+
+
+poly = gpd.read_file(poly_shp_path)
+
+def test_get_waterways_within_boundary():
+    ww1 = osm.get_waterways_within_boundary(poly)
+
+    assert (len(ww1) >= 4)
+
