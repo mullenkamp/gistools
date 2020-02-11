@@ -82,7 +82,7 @@ def sel_sites_poly(pts, poly, buffer_dis=0):
     return points2
 
 
-def pts_poly_join(pts, poly, poly_id_col):
+def pts_poly_join(pts, poly, poly_id_col, how='inner', op='within'):
     """
     Simple function to join the attributes of the polygon to the points. Specifically for an ID field in the polygon.
 
@@ -110,7 +110,7 @@ def pts_poly_join(pts, poly, poly_id_col):
     poly2 = gdf_poly[cols].copy()
     poly3 = poly2.dissolve(poly_id_col).reset_index()
 
-    join1 = sjoin(gdf_pts.copy(), poly3.copy(), how='inner', op='within')
+    join1 = sjoin(gdf_pts.copy(), poly3.copy(), how=how, op=op)
     cols = set(gdf_pts.columns)
     cols.update(set(poly3.columns))
     join1.drop([i for i in join1.columns if i not in cols], axis=1, inplace=True)
