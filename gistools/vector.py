@@ -25,7 +25,7 @@ def kd_nearest(gdf_from, gdf_to, id_col, max_distance=np.inf):
         Source points.
     gdf_to : GeoDataFrame
         Points to find the nearest to gdf_from.
-    id_col : str
+    id_col : str or list of str
         The ID column in gdf_to as an identifier.
     max_distance : non-negative float, optional
         Return only neighbors within this distance. This is used to prune tree searches, so if you are doing a series of nearest-neighbor queries, it may help to supply the distance to the nearest neighbor of the most recent point.
@@ -41,6 +41,15 @@ def kd_nearest(gdf_from, gdf_to, id_col, max_distance=np.inf):
     dist, idx = btree.query(nA, k=1, distance_upper_bound=max_distance)
 
     new_gdf['distance'] = dist.astype(int)
+
+    if isinstance(id_col, str):
+        new_gdf[id_col] = 0
+    elif isinstance(id_col, list):
+        for l in id_col:
+            new_gdf[l] = 0
+    else:
+        raise ValueError('id_col musy be either a str or a list')
+
     new_gdf[id_col] = gdf_to.reset_index(drop=True).loc[idx, id_col].values
 
     return new_gdf
