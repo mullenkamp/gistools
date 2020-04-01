@@ -99,6 +99,7 @@ def load_geo_data(data):
     -------
     GeoDataFrame
     """
+    gpd1=None
     if isinstance(data, gpd.GeoDataFrame):
         gpd1 = data.copy()
     elif isinstance(data, str):
