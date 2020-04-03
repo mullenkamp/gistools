@@ -10,7 +10,7 @@ import geopandas as gpd
 from scipy.spatial import cKDTree
 from gistools import vector
 import copy
-
+import time
 try:
     import overpass
     import osm2geojson
@@ -68,17 +68,21 @@ def get_nearest_waterways(gdf_from, id_col, max_distance=500, waterway_type='all
 
     print('Overpass endpoint is: ' + op_endpoint)
 
+    no_node_ids = []
+
     res_list = []
     for index, p in from1.iterrows():
 #        print(p[id_col])
         q1 = q_base.format(dis=max_distance, lat=p.lat, lon=p.lon)
 
         response = api.get(q1, responseformat='json')
+        time.sleep(1)
 
         nodes1 = [n for n in response['elements'] if n['type'] == 'node']
         pd_nodes = pd.DataFrame.from_records(nodes1)
         if pd_nodes.empty:
             print('No node was found during the query for ' + id_col + ': ' + str(p[id_col]))
+            no_node_ids.extend([p[id_col]])
             continue
         gpd_nodes1 = gpd.GeoDataFrame(pd_nodes, geometry=gpd.points_from_xy(pd_nodes['lon'], pd_nodes['lat']), crs=4326)
         gpd_nodes2 = gpd_nodes1.to_crs(from1.crs)
@@ -101,7 +105,7 @@ def get_nearest_waterways(gdf_from, id_col, max_distance=500, waterway_type='all
         res_list.append(best1)
 
     res1 = pd.concat(res_list, sort=False).reset_index(drop=True)
-    return res1
+    return res1, no_node_ids
 
 
 def get_waterways(osm_nodes_from, waterway_type='all'):
@@ -153,6 +157,8 @@ def get_waterways(osm_nodes_from, waterway_type='all'):
             q1 = q_node + q_other_base
 
             response = api.get(q1, responseformat='json')
+            time.sleep(1)
+
             ww1 = {ww['id']: ww for ww in response['elements'] if (ww['type'] == 'way')}
             lst1 = [{p.id: p.waterway_id}, ww1]
             waterways.append(lst1)
