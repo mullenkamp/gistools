@@ -10,7 +10,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 name = 'gistools'
 main_package = 'gistools'
 datasets = 'datasets'
-version = '1.2.17'
+version = '1.2.18'
 
 # The below code is for readthedocs. To have sphinx/readthedocs interact with
 # the contained package, readthedocs needs to build the package. But the dependencies

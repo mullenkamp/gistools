@@ -98,7 +98,10 @@ def get_nearest_waterways(gdf_from, id_col, max_distance=500, waterway_type='all
 
         ways1 = [n for n in response['elements'] if n['type'] == 'way']
         [s['tags'].update({'name': 'No name'}) for s in ways1 if not 'name' in s['tags']]
-        this_way = [{'waterway_id': w['id'], 'waterway_name': w['tags']['name']} for w in ways1 if best1['id'].iloc[0] in w['nodes'][1:]][0]
+        if len(ways1) == 1:
+            this_way = {'waterway_id': ways1[0]['id'], 'waterway_name': ways1[0]['tags']['name']}
+        else:
+            this_way = [{'waterway_id': w['id'], 'waterway_name': w['tags']['name']} for w in ways1 if best1['id'].iloc[0] in w['nodes'][1:]][0]
         best1['waterway_id'] = this_way['waterway_id']
         best1['waterway_name'] = this_way['waterway_name']
 
