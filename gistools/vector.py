@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 from geopandas.tools import sjoin
-from shapely.geometry import Point, Polygon
+from shapely.geometry import Point, Polygon, box
 from gistools.util import load_geo_data
 from pycrs import parse
 from scipy.spatial import cKDTree
@@ -323,3 +323,35 @@ def multipoly_to_poly(geodataframe):
         gpd2 = pd.concat([gpd2, new1])
     return gpd2.reset_index(drop=True)
 
+
+def convert_lines_to_points(lines, id_col, mask=None):
+    """
+    Takes a GeoDataFrame of lines and breaks it into points at all verticies. Optionally mask the lines.
+
+    Parameters
+    ----------
+    lines : GeoDataFrame
+        Of the input lines.
+    id_col : str
+        The column in the lines object to be used as the line id that will be passed to the resulting points.
+    mask : list, tuple, Polygon, or None
+        The mask to reduce the number of lines. If list or tuple, they must be floats with a length of four in the order of (minx, miny, maxx, maxy).
+
+    Returns
+    -------
+    GeoDataFrame
+        Of points
+    """
+    if isinstance(mask, (list, tuple)):
+        if len(mask) == 4:
+            extent = box(mask)
+    elif isinstance(mask, Polygon):
+        extent = mask
+
+    lines1 = lines[lines.intersects(extent)].set_index(id_col).copy()
+    coords = lines1.geometry.apply(lambda x: list(x.coords)).explode()
+    geo1 = coords.apply(lambda x: Point(x))
+
+    lines_pts = gpd.GeoDataFrame(coords, geometry=geo1, crs=lines.crs).reset_index()
+
+    return lines_pts

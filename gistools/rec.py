@@ -23,6 +23,12 @@ def find_upstream(nzreach, rec_streams, segment_id_col='nzsegment', from_node_co
         The NZ reach IDs
     rec_streams_shp : str path or GeoDataFrame
         str path to the REC streams shapefile or the equivelant GeoDataFrame.
+    segment_id_col : str
+        The column name of the line segment id.
+    from_node_col : str
+        The from node column
+    to_node_col : str
+        The to node column
 
     Returns
     -------
@@ -65,6 +71,8 @@ def extract_catch(reaches, rec_catch, segment_id_col='nzsegment'):
         The output DataFrame from the find_upstream function.
     rec_catch_shp : str path, dict, or GeoDataFrame
         str path to the REC catchment shapefile or a GeoDataFrame.
+    segment_id_col : str
+        The column name of the line segment id.
 
     Returns
     -------
@@ -109,14 +117,24 @@ def catch_delineate(sites, rec_streams, rec_catch, segment_id_col='nzsegment', f
 
     Parameters
     ----------
-    sites_shp : str path or GeoDataFrame
+    sites : str path or GeoDataFrame
         Points shapfile of the sites along the streams or the equivelant GeoDataFrame.
-    rec_streams_shp : str path, GeoDataFrame
+    rec_streams : str path or GeoDataFrame
         str path to the REC streams shapefile, the equivelant GeoDataFrame, or a dict of parameters to read in an mssql table using the rd_sql function.
-    rec_catch_shp : str path, GeoDataFrame
+    rec_catch : str path or GeoDataFrame
         str path to the REC catchment shapefile, the equivelant GeoDataFrame, or a dict of parameters to read in an mssql table using the rd_sql function.
+    segment_id_col : str
+        The column name of the line segment id.
+    from_node_col : str
+        The from node column
+    to_node_col : str
+        The to node column
+    ignore_order : int
+        Ignore the stream orders in the search up to this int.
+    stream_order_col : str
+        The stream order column.
     max_distance : non-negative float, optional
-        Return only neighbors within this distance. This is used to prune tree searches, so if you are doing a series of nearest-neighbor queries, it may help to supply the distance to the nearest neighbor of the most recent point.
+        Return only neighbors within this distance. This is used to prune tree searches, so if you are doing a series of nearest-neighbor queries, it may help to supply the distance to the nearest neighbor of the most recent point. It's best to define a reasonable distance for the search.
     site_delineate : 'all' or 'between'
         Whether the catchments should be dileated all the way to the top or only in between the sites.
     returns : 'catch' or 'all'
@@ -155,11 +173,13 @@ def catch_delineate(sites, rec_streams, rec_catch, segment_id_col='nzsegment', f
     s_order = list(range(1, ignore_order + 1))
     rec_streams2 = rec_streams[~rec_streams[stream_order_col].isin(s_order)]
 
-    rec_pts1 = rec_streams2[rec_streams2.intersects(pts_extent)].set_index(segment_id_col).copy()
-    coords = rec_pts1.geometry.apply(lambda x: list(x.coords)).explode()
-    geo1 = coords.apply(lambda x: Point(x))
+    rec_pts2 = convert_lines_to_points(rec_streams2, segment_id_col, pts_extent)
 
-    rec_pts2 = gpd.GeoDataFrame(coords, geometry=geo1, crs=rec_pts1.crs).reset_index()
+    # rec_pts1 = rec_streams2[rec_streams2.intersects(pts_extent)].set_index(segment_id_col).copy()
+    # coords = rec_pts1.geometry.apply(lambda x: list(x.coords)).explode()
+    # geo1 = coords.apply(lambda x: Point(x))
+    #
+    # rec_pts2 = gpd.GeoDataFrame(coords, geometry=geo1, crs=rec_pts1.crs).reset_index()
 
     pts_seg = kd_nearest(pts, rec_pts2, segment_id_col, max_distance=max_distance)
     nzreach = pts_seg[segment_id_col].copy().unique()
