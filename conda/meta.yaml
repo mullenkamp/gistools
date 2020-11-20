@@ -1,6 +1,6 @@
 {% set name = "gistools" %}
-{% set version = "1.2.20" %}
-{% set sha256 = "dcf1b9fe0020ec7faeaab386d8e1a27b6ea5ff5b74ac209bfe289689fdc5f5b9" %}
+{% set version = "1.2.21" %}
+{% set sha256 = "fffa21cfbbee446ffcae0ea33e6b8bf239c2208e3bba04fa0e7ddb6649fa373b" %}
 
 # sha256 is the prefered checksum -- you can get it for a file with:
 #  `openssl sha256 <file name>`.
