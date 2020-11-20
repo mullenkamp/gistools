@@ -6,12 +6,14 @@ import numpy as np
 import pandas as pd
 from gistools.vector import kd_nearest
 from gistools.util import load_geo_data
+from shapely.geometry import Polygon, Point, box
+from shapely.ops import unary_union
 
 #####################################################
 #### MFE REC streams network
 
 
-def find_upstream(nzreach, rec_streams_shp):
+def find_upstream(nzreach, rec_streams, segment_id_col='nzsegment', from_node_col='FROM_NODE', to_node_col='TO_NODE'):
     """
     Function to estimate all of the reaches (and nodes) upstream of specific reaches.
 
@@ -29,28 +31,23 @@ def find_upstream(nzreach, rec_streams_shp):
     if not isinstance(nzreach, (list, np.ndarray, pd.Series)):
         raise TypeError('nzreach must be a list, ndarray or Series.')
 
-    ### Parameters
-#    server = 'SQL2012PROD05'
-#    db = 'GIS'
-#    table = 'MFE_NZTM_REC'
-#    cols = ['NZREACH', 'NZFNODE', 'NZTNODE']
-#
-#    ### Load data
-    rec = load_geo_data(rec_streams_shp).drop('geometry', axis=1).copy()
+   ### Load data
+    rec = load_geo_data(rec_streams).drop('geometry', axis=1).copy()
 
     ### Run through all nzreaches
     reaches_lst = []
     for i in nzreach:
-        reach1 = rec[rec.NZREACH == i]
-        up1 = rec[rec.NZTNODE.isin(reach1.NZFNODE)]
+        reach1 = rec[rec[segment_id_col] == i].copy()
+        up1 = rec[rec[to_node_col].isin(reach1[from_node_col])]
         while not up1.empty:
             reach1 = pd.concat([reach1, up1])
-            up1 = rec[rec.NZTNODE.isin(up1.NZFNODE)]
+            up1 = rec[rec[to_node_col].isin(up1[from_node_col])]
         reach1.loc[:, 'start'] = i
         reaches_lst.append(reach1)
 
     reaches = pd.concat(reaches_lst)
     reaches.set_index('start', inplace=True)
+
     return reaches
 
 
@@ -58,7 +55,7 @@ def find_upstream(nzreach, rec_streams_shp):
 ### Catch delineation using the REC
 
 
-def extract_catch(reaches, rec_catch_shp):
+def extract_catch(reaches, rec_catch, segment_id_col='nzsegment'):
     """
     Function to extract the catchment polygons from the rec catchments layer. Appends to reaches layer.
 
@@ -73,25 +70,14 @@ def extract_catch(reaches, rec_catch_shp):
     -------
     GeoDataFrame
     """
+    sites = reaches[segment_id_col].unique().astype('int32')
+    catch0 = load_geo_data(rec_catch)
 
-    ### Parameters
-#    server = 'SQL2012PROD05'
-#    db = 'GIS'
-#    table = 'MFE_NZTM_RECWATERSHEDCANTERBURY'
-#    cols = ['NZREACH']
-#
-    sites = reaches.NZREACH.unique().astype('int32')
-#
-#    ### Extract reaches from SQL
-#    catch1 = rd_sql(server, db, table, cols, where_col='NZREACH', where_val=sites, geo_col=True)
-#    catch2 = catch1.dissolve('NZREACH')
-    catch0 = load_geo_data(rec_catch_shp)
-
-    catch1 = catch0[catch0.NZREACH.isin(sites)]
-    catch2 = catch1.dissolve('NZREACH').reset_index()[['NZREACH', 'geometry']]
+    catch1 = catch0[catch0[segment_id_col].isin(sites)].copy()
+    catch2 = catch1.dissolve(segment_id_col).reset_index()[[segment_id_col, 'geometry']]
 
     ### Combine with original sites
-    catch3 = catch2.merge(reaches.reset_index(), on='NZREACH')
+    catch3 = catch2.merge(reaches.reset_index(), on=segment_id_col)
     catch3.crs = catch0.crs
 
     return catch3
@@ -117,7 +103,7 @@ def agg_catch(rec_catch):
     return rec_shed.reset_index()
 
 
-def catch_delineate(sites_shp, rec_streams_shp, rec_catch_shp, max_distance=np.inf, site_delineate='all', returns='catch'):
+def catch_delineate(sites, rec_streams, rec_catch, segment_id_col='nzsegment', from_node_col='FROM_NODE', to_node_col='TO_NODE', ignore_order=1, stream_order_col='StreamOrde', max_distance=np.inf, site_delineate='all', returns='catch'):
     """
     Catchment delineation using the REC streams and catchments.
 
@@ -145,51 +131,64 @@ def catch_delineate(sites_shp, rec_streams_shp, rec_catch_shp, max_distance=np.i
     ### Parameters
 
 
-    ### Modifications {NZREACH: {NZTNODE/NZFNODE: node # to change}}
-    mods = {13053151: {'NZTNODE': 13055874}, 13048353: {'NZTNODE': 13048851}, 13048498: {'NZTNODE': 13048851}, 13048490: {'ORDER': 3}}
+    ### Modifications {segment_id_col: {NZTNODE/NZFNODE: node # to change}}
+    # mods = {13053151: {segment_id_col: 13055874}, 13048353: {'NZTNODE': 13048851}, 13048498: {'NZTNODE': 13048851}, 13048490: {'ORDER': 3}}
 
     ### Load data
-    rec_catch = load_geo_data(rec_catch_shp)
-    rec_streams = load_geo_data(rec_streams_shp)
-    pts = load_geo_data(sites_shp)
+    rec_catch = load_geo_data(rec_catch)
+    rec_streams = load_geo_data(rec_streams)
+    pts = load_geo_data(sites)
     pts['geometry'] = pts.geometry.simplify(1)
 
     ### make mods
-    for i in mods:
-        rec_streams.loc[rec_streams['NZREACH'] == i, list(mods[i].keys())] = list(mods[i].values())
+    # for i in mods:
+    #     rec_streams.loc[rec_streams['segment_id_col'] == i, list(mods[i].keys())] = list(mods[i].values())
 
     ### Find closest REC segment to points
-    rec_pts1 = rec_streams.copy()
-    rec_pts1['geometry'] = rec_streams.centroid
+    if max_distance == np.inf:
+        buffer_dis = 100000
+    else:
+        buffer_dis = max_distance
 
-    pts_seg = kd_nearest(pts, rec_pts1, 'NZREACH', max_distance=max_distance)
-    nzreach = pts_seg.copy().NZREACH.unique()
+    pts_extent = box(*pts.unary_union.buffer(buffer_dis).bounds)
+
+    s_order = list(range(1, ignore_order + 1))
+    rec_streams2 = rec_streams[~rec_streams[stream_order_col].isin(s_order)]
+
+    rec_pts1 = rec_streams2[rec_streams2.intersects(pts_extent)].set_index(segment_id_col).copy()
+    coords = rec_pts1.geometry.apply(lambda x: list(x.coords)).explode()
+    geo1 = coords.apply(lambda x: Point(x))
+
+    rec_pts2 = gpd.GeoDataFrame(coords, geometry=geo1, crs=rec_pts1.crs).reset_index()
+
+    pts_seg = kd_nearest(pts, rec_pts2, segment_id_col, max_distance=max_distance)
+    nzreach = pts_seg[segment_id_col].copy().unique()
 
     ### Find all upstream reaches
-    reaches = find_upstream(nzreach, rec_streams_shp=rec_streams)
+    reaches = find_upstream(nzreach, rec_streams=rec_streams, segment_id_col=segment_id_col, from_node_col=from_node_col, to_node_col=to_node_col)
 
     ### Clip reaches to in-between sites if required
     if site_delineate == 'between':
         reaches1 = reaches.reset_index().copy()
-        reaches2 = reaches1.loc[reaches1.NZREACH.isin(reaches1.start.unique()), ['start', 'NZREACH']]
-        reaches2 = reaches2[reaches2.start != reaches2.NZREACH]
+        reaches2 = reaches1.loc[reaches1[segment_id_col].isin(reaches1.start.unique()), ['start', segment_id_col]]
+        reaches2 = reaches2[reaches2.start != reaches2[segment_id_col]]
 
         grp1 = reaches2.groupby('start')
 
         for index, r in grp1:
 #            print(index, r)
-            r2 = reaches1[reaches1.start.isin(r.NZREACH)].NZREACH.unique()
-            reaches1 = reaches1[~((reaches1.start == index) & (reaches1.NZREACH.isin(r2)))]
+            r2 = reaches1[reaches1.start.isin(r[segment_id_col])][segment_id_col].unique()
+            reaches1 = reaches1[~((reaches1.start == index) & (reaches1[segment_id_col].isin(r2)))]
 
         reaches = reaches1.set_index('start').copy()
 
     ### Extract associated catchments
-    rec_catch = extract_catch(reaches, rec_catch_shp=rec_catch)
+    rec_catch2 = extract_catch(reaches, rec_catch=rec_catch, segment_id_col=segment_id_col)
 
     ### Aggregate individual catchments
-    rec_shed = agg_catch(rec_catch)
-    rec_shed.columns = ['NZREACH', 'geometry', 'area']
-    rec_shed1 = rec_shed.merge(pts_seg.drop('geometry', axis=1), on='NZREACH')
+    rec_shed = agg_catch(rec_catch2)
+    rec_shed.columns = [segment_id_col, 'geometry', 'area']
+    rec_shed1 = rec_shed.merge(pts_seg.drop('geometry', axis=1), on=segment_id_col)
 
     ### Return
     if returns == 'catch':

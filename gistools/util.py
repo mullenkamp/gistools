@@ -103,9 +103,9 @@ def load_geo_data(data):
     if isinstance(data, gpd.GeoDataFrame):
         gpd1 = data.copy()
     elif isinstance(data, str):
-        if data.endswith('shp'):
+        if (data.endswith('shp') or data.endswith('gpkg')):
             gpd1 = gpd.read_file(data)
         else:
-            raise ValueError('If input is a str, then it must be a path to a shapefile.')
+            raise ValueError('If input is a str, then it must be a path to a shapefile or a geopackage.')
 
     return gpd1
