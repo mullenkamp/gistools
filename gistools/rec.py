@@ -4,7 +4,7 @@ Functions to delineate catchments.
 """
 import numpy as np
 import pandas as pd
-from gistools.vector import kd_nearest
+from gistools.vector import kd_nearest, convert_lines_to_points
 from gistools.util import load_geo_data
 from shapely.geometry import Polygon, Point, box
 from shapely.ops import unary_union
