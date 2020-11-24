@@ -6,8 +6,7 @@ import numpy as np
 import pandas as pd
 from gistools.vector import kd_nearest, convert_lines_to_points
 from gistools.util import load_geo_data
-from shapely.geometry import Polygon, Point, box
-from shapely.ops import unary_union
+from shapely.geometry import box
 
 #####################################################
 #### MFE REC streams network
@@ -37,7 +36,7 @@ def find_upstream(nzreach, rec_streams, segment_id_col='nzsegment', from_node_co
     if not isinstance(nzreach, (list, np.ndarray, pd.Series)):
         raise TypeError('nzreach must be a list, ndarray or Series.')
 
-   ### Load data
+    ### Load data
     rec = load_geo_data(rec_streams).drop('geometry', axis=1).copy()
 
     ### Run through all nzreaches
