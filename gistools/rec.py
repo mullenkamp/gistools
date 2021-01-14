@@ -181,6 +181,7 @@ def catch_delineate(sites, rec_streams, rec_catch, segment_id_col='nzsegment', f
     # rec_pts2 = gpd.GeoDataFrame(coords, geometry=geo1, crs=rec_pts1.crs).reset_index()
 
     pts_seg = kd_nearest(pts, rec_pts2, segment_id_col, max_distance=max_distance)
+    pts_seg = pts_seg[pts_seg[segment_id_col].notnull()].copy()
     nzreach = pts_seg[segment_id_col].copy().unique()
 
     ### Find all upstream reaches

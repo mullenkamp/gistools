@@ -50,7 +50,19 @@ def kd_nearest(gdf_from, gdf_to, id_col, max_distance=np.inf):
     else:
         raise ValueError('id_col musy be either a str or a list')
 
-    new_gdf[id_col] = gdf_to.reset_index(drop=True).loc[idx, id_col].values
+    from_mis_index = np.where(idx >= nB.shape[0])[0]
+    from_index = idx < nB.shape[0]
+
+    if from_mis_index.shape[0] > 0:
+        mis_ones = gdf_from.loc[from_mis_index]
+        print('Some nearest points were not found')
+        print(mis_ones)
+        idx2 = idx[idx < nB.shape[0]]
+    else:
+        idx2 = idx
+
+    new_gdf[id_col] = np.nan
+    new_gdf.loc[from_index, id_col] = gdf_to.reset_index(drop=True).loc[idx2, id_col].values
 
     return new_gdf
 
