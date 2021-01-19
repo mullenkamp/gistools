@@ -26,7 +26,7 @@ def query_esri_mapserver(base_url, layer_id, out_fields=None, where=None):
     out_fields : None or list of str
         The output fields to be returned. The geometry will always be returned. None will return all fields.
     where : None or str
-        The SQL style where clause to query the layer. None will have no filters. Keep in mind that if a str where clause if provided, it must return less than the max transfer limit (1000).
+        The SQL style 'where' clause to query the layer. None will have no filters.
 
     Returns
     -------
@@ -66,14 +66,15 @@ def query_esri_mapserver(base_url, layer_id, out_fields=None, where=None):
     else:
         exceed = False
 
-    if isinstance(where, str) and exceed:
-        raise ValueError('The query exceeded the max transfer limit. Either narrow the "where" filter or make "where" = None and get all of the data')
-
     data_all = copy.deepcopy(data)
 
     while exceed:
         last_id = data['features'][-1]['id']
-        params.update({'where': 'objectid > ' + str(last_id)})
+
+        if isinstance(where, str):
+            params.update({'where': where + 'and objectid > ' + str(last_id)})
+        else:
+            params.update({'where': 'objectid > ' + str(last_id)})
 
         resp = requests.get(url, params=params)
 
