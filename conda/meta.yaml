@@ -1,6 +1,6 @@
 {% set name = "gistools" %}
-{% set version = "1.2.24" %}
-{% set sha256 = "3f8700baabcb439b4ffa5d90ccc4b97c3994974dd352e631e88be20fcafe2651" %}
+{% set version = "1.2.25" %}
+{% set sha256 = "72db974853c667ff56d6871f3ca991c6ebc7a376202c94c74d8670f420c2f4f3" %}
 
 # sha256 is the prefered checksum -- you can get it for a file with:
 #  `openssl sha256 <file name>`.
@@ -35,10 +35,12 @@ requirements:
     - python
     - setuptools
   run:
-    - python>=3.5
+    - python>=3.6
     - geopandas
     - pycrs
     - scipy
+    - requests
+    - orjson
 
 test:
   imports:

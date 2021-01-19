@@ -367,3 +367,6 @@ def convert_lines_to_points(lines, id_col, mask=None):
     lines_pts = gpd.GeoDataFrame(coords, geometry=geo1, crs=lines.crs).reset_index()
 
     return lines_pts
+
+
+
