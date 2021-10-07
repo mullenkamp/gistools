@@ -362,7 +362,7 @@ def pts_to_waterway_delineation(gdf_from, id_col, max_distance=500, waterway_typ
     Two GeoDataFrames
         The first is the GeoDataFrame of the nearest OSM waterway and node associated with the sites and the other is the one that contains the upstream delineated waterways.
     """
-    pts1 = get_nearest_waterways(gdf_from, id_col, max_distance, waterway_type)
+    pts1, no_node_ids = get_nearest_waterways(gdf_from, id_col, max_distance, waterway_type)
     waterways, nodes = get_waterways(pts1, waterway_type)
     site_delin = waterway_delineation(waterways, site_delineate)
     osm_delin = to_osm(site_delin, nodes)
