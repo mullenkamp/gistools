@@ -17,10 +17,10 @@ pd.options.display.max_columns = 10
 
 data_dir = os.path.join(os.path.split(os.path.realpath(os.path.dirname(__file__)))[0], 'datasets', 'shapefiles')
 
-sites_shp = 'flow_recorders_pareora'
-rec_streams_shp = 'rec_streams_pareora'
-rec_catch_shp = 'rec_catch_pareora'
-catch_shp = 'catchment_pareora'
+sites_shp = 'flow_recorders_pareora.shp'
+rec_streams_shp = 'rec_streams_pareora.shp'
+rec_catch_shp = 'rec_catch_pareora.shp'
+catch_shp = 'catchment_pareora.shp'
 
 sites_shp_path = os.path.join(data_dir, sites_shp)
 rec_streams_shp_path = os.path.join(data_dir, rec_streams_shp)
