@@ -14,15 +14,17 @@ pd.options.display.max_columns = 10
 ####################################
 ### Parameters
 
+data_dir = os.path.join(os.path.split(os.path.realpath(os.path.dirname(__file__)))[0], 'datasets', 'shapefiles')
+
 sites_shp = 'flow_recorders_pareora'
 rec_streams_shp = 'rec_streams_pareora'
 rec_catch_shp = 'rec_catch_pareora'
 catch_shp = 'catchment_pareora'
 
-sites_shp_path = get_path(sites_shp)
-rec_streams_shp_path = get_path(rec_streams_shp)
-rec_catch_shp_path = get_path(rec_catch_shp)
-catch_shp_path = get_path(catch_shp)
+sites_shp_path = os.path.join(data_dir, sites_shp)
+rec_streams_shp_path = os.path.join(data_dir, rec_streams_shp)
+rec_catch_shp_path = os.path.join(data_dir, rec_catch_shp)
+catch_shp_path = os.path.join(data_dir, catch_shp)
 
 sites_col_name = 'SITENUMBER'
 poly_col_name = 'Catchmen_1'
@@ -68,13 +70,3 @@ def test_kd_nearest():
     line2 = vector.kd_nearest(pts, rec_pts1, line_site_col)
 
     assert (len(line2) == 2) & isinstance(line2, gpd.GeoDataFrame) & line2[line_site_col].notnull().all()
-
-
-
-
-
-
-
-
-
-
