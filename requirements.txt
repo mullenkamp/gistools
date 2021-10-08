@@ -1,3 +1,7 @@
 geopandas
 pycrs
-pdsql
+scipy
+overpass
+osm2geojson
+requests
+orjson

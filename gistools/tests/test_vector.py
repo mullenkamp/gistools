@@ -7,7 +7,7 @@ Created on Fri Aug  3 15:28:28 2018
 import pandas as pd
 import geopandas as gpd
 from gistools import vector, util
-from gistools.datasets import get_path
+# from gistools.datasets import get_path
 
 pd.options.display.max_columns = 10
 
