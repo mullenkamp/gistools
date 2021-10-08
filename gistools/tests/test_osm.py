@@ -62,7 +62,7 @@ def test_get_nearest():
 
     assert (len(pts1) == 2) & isinstance(pts1, gpd.GeoDataFrame)
 
-pts1 = osm.get_nearest_waterways(gdf_from, id_col)
+pts1, no_node_ids = osm.get_nearest_waterways(gdf_from, id_col)
 
 
 def test_get_waterways():
