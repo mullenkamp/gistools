@@ -8,7 +8,7 @@ import os
 import pandas as pd
 import geopandas as gpd
 from gistools import util, rec
-from gistools.datasets import get_path
+# from gistools.datasets import get_path
 
 pd.options.display.max_columns = 10
 
