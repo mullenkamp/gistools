@@ -18,7 +18,7 @@ version = '1.2.27'
 if os.environ.get('READTHEDOCS', False) == 'True':
     INSTALL_REQUIRES = []
 else:
-    INSTALL_REQUIRES = ['geopandas', 'pycrs', 'scipy', 'overpass', 'osm2geojson', 'requests', 'orjson']
+    INSTALL_REQUIRES = ['geopandas', 'pycrs', 'scipy', 'overpass', 'osm2geojson', 'requests', 'orjson', 'rtree']
 
 # Get the long description from the README file
 with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
