@@ -32,7 +32,7 @@ poly_shp = 'catchment_pareora.shp'
 poly_shp_path = os.path.join(data_dir, poly_shp)
 
 
-# osm.op_endpoint = 'http://esnode.nzrivers.xyz:12347/api/interpreter'
+osm.op_endpoint = 'https://overpass.tethys-ts.xyz/api/interpreter'
 
 #sites_shp = 'opihi_limit_points'
 #
