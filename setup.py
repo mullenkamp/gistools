@@ -9,8 +9,8 @@ here = os.path.abspath(os.path.dirname(__file__))
 # General parameters
 name = 'gistools'
 main_package = 'gistools'
-datasets = 'datasets'
-version = '1.2.18'
+# datasets = 'datasets'
+version = '1.2.27'
 
 # The below code is for readthedocs. To have sphinx/readthedocs interact with
 # the contained package, readthedocs needs to build the package. But the dependencies
@@ -18,21 +18,21 @@ version = '1.2.18'
 if os.environ.get('READTHEDOCS', False) == 'True':
     INSTALL_REQUIRES = []
 else:
-    INSTALL_REQUIRES = ['geopandas', 'pycrs', 'scipy', 'overpass', 'osm2geojson']
+    INSTALL_REQUIRES = ['geopandas', 'pycrs', 'scipy', 'overpass', 'osm2geojson', 'requests', 'orjson', 'rtree']
 
 # Get the long description from the README file
 with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 # get all data dirs in the datasets module
-data_files = []
-
-for item in os.listdir(os.path.join(main_package, datasets)):
-    if not item.startswith('__'):
-        if os.path.isdir(os.path.join(main_package, datasets, item)):
-            data_files.append(os.path.join(datasets, item, '*'))
-        elif item.endswith('.zip'):
-            data_files.append(os.path.join(datasets, item))
+# data_files = []
+#
+# for item in os.listdir(os.path.join(main_package, datasets)):
+#     if not item.startswith('__'):
+#         if os.path.isdir(os.path.join(main_package, datasets, item)):
+#             data_files.append(os.path.join(datasets, item, '*'))
+#         elif item.endswith('.zip'):
+#             data_files.append(os.path.join(datasets, item))
 
 # Arguments marked as "Required" below must be included for upload to PyPI.
 # Fields marked as "Optional" may be commented out.
@@ -132,7 +132,7 @@ setup(
     #
     #   py_modules=["my_module"],
     #
-    packages=find_packages(exclude=['contrib', 'docs', 'tests', '__pycashe__']),  # Required
+    packages=find_packages(exclude=['contrib', 'docs', 'tests', '__pycashe__', 'datasets']),  # Required
 
     # This field lists other packages that your project depends on to run.
     # Any package you put here will be installed by pip when your project is
@@ -160,9 +160,9 @@ setup(
     #
     # If using Python 2.6 or earlier, then these have to be included in
     # MANIFEST.in as well.
-    package_data={  # Optional
-        main_package: data_files,
-    },
+    # package_data={  # Optional
+    #     main_package: data_files,
+    # },
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:

@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 from scipy.spatial import cKDTree
-from gistools import vector
 import copy
 import time
 try:
@@ -18,13 +17,13 @@ except:
     print('Install overpass and osm2geojson for osm module functions')
 
 #############################################
-### Parameters
+# Parameters
 
 op_endpoint = 'https://overpass-api.de/api/interpreter'
 
 
 #############################################
-### Functions
+# Functions
 
 
 def get_nearest_waterways(gdf_from, id_col, max_distance=500, waterway_type='all'):
@@ -72,7 +71,7 @@ def get_nearest_waterways(gdf_from, id_col, max_distance=500, waterway_type='all
 
     res_list = []
     for index, p in from1.iterrows():
-#        print(p[id_col])
+        #        print(p[id_col])
         q1 = q_base.format(dis=max_distance, lat=p.lat, lon=p.lon)
 
         response = api.get(q1, responseformat='json')
@@ -84,7 +83,8 @@ def get_nearest_waterways(gdf_from, id_col, max_distance=500, waterway_type='all
             print('No node was found during the query for ' + id_col + ': ' + str(p[id_col]))
             no_node_ids.extend([p[id_col]])
             continue
-        gpd_nodes1 = gpd.GeoDataFrame(pd_nodes, geometry=gpd.points_from_xy(pd_nodes['lon'], pd_nodes['lat']), crs=4326)
+        gpd_nodes1 = gpd.GeoDataFrame(pd_nodes, geometry=gpd.points_from_xy(
+            pd_nodes['lon'], pd_nodes['lat']), crs=4326)
         gpd_nodes2 = gpd_nodes1.to_crs(from1.crs)
 
         nodes2 = list(zip(gpd_nodes2.geometry.x, gpd_nodes2.geometry.y))
@@ -101,7 +101,8 @@ def get_nearest_waterways(gdf_from, id_col, max_distance=500, waterway_type='all
         if len(ways1) == 1:
             this_way = {'waterway_id': ways1[0]['id'], 'waterway_name': ways1[0]['tags']['name']}
         else:
-            this_way = [{'waterway_id': w['id'], 'waterway_name': w['tags']['name']} for w in ways1 if best1['id'].iloc[0] in w['nodes'][1:]][0]
+            this_way = [{'waterway_id': w['id'], 'waterway_name': w['tags']['name']}
+                        for w in ways1 if best1['id'].iloc[0] in w['nodes'][1:]][0]
         best1['waterway_id'] = this_way['waterway_id']
         best1['waterway_name'] = this_way['waterway_name']
 
@@ -235,7 +236,8 @@ def waterway_delineation(waterways, site_delineate=False, only_waterways=True):
 
             if only_waterways:
                 site_ww1 = {i: s for i, s in site_ww.items() if 'waterway' in s['tags']}
-                site_ww2 = {i: s for i, s in site_ww1.items() if s['tags']['waterway'] in ['river', 'stream', 'drain', 'canal', 'ditch']}
+                site_ww2 = {i: s for i, s in site_ww1.items() if s['tags']['waterway'] in [
+                    'river', 'stream', 'drain', 'canal', 'ditch']}
             else:
                 site_ww2 = site_ww
 
@@ -243,11 +245,11 @@ def waterway_delineation(waterways, site_delineate=False, only_waterways=True):
 
         if site_delineate:
             for node1, node_way1 in w[0].items():
-#                print('origin ' + str(node1))
+                #                print('origin ' + str(node1))
                 sw1 = site_delin[node1]
                 for node2, node_way2 in w[0].items():
                     if node2 != node1:
-#                        print('removal ' + str(node2))
+                        #                        print('removal ' + str(node2))
                         if node_way2 in sw1.keys():
                             sw2 = site_delin[node2]
                             way1 = sw1[node_way2]['nodes']
@@ -316,8 +318,10 @@ def to_gdf(osm_delin):
 
     for id1, osm1 in osm_delin.items():
         s1 = osm2geojson.json2shapes(osm1)
-        [s['properties']['tags'].update({'name': 'No name'}) for s in s1 if not 'name' in s['properties']['tags']]
-        l1 = [[id1, s['properties']['id'], s['properties']['tags']['name'], s['properties']['tags']['waterway'], s['shape']] for s in s1]
+        [s['properties']['tags'].update({'name': 'No name'})
+         for s in s1 if not 'name' in s['properties']['tags']]
+        l1 = [[id1, s['properties']['id'], s['properties']['tags']['name'],
+               s['properties']['tags']['waterway'], s['shape']] for s in s1]
         shape1.extend(l1)
 
     df1 = pd.DataFrame(shape1, columns=['start_node', 'way_id', 'name', 'waterway', 'geometry'])
@@ -358,7 +362,7 @@ def pts_to_waterway_delineation(gdf_from, id_col, max_distance=500, waterway_typ
     Two GeoDataFrames
         The first is the GeoDataFrame of the nearest OSM waterway and node associated with the sites and the other is the one that contains the upstream delineated waterways.
     """
-    pts1 = get_nearest_waterways(gdf_from, id_col, max_distance, waterway_type)
+    pts1, no_node_ids = get_nearest_waterways(gdf_from, id_col, max_distance, waterway_type)
     waterways, nodes = get_waterways(pts1, waterway_type)
     site_delin = waterway_delineation(waterways, site_delineate)
     osm_delin = to_osm(site_delin, nodes)
@@ -378,13 +382,13 @@ def get_waterways_within_boundary(poly, buffer=0, waterway_type='all'):
     else:
         raise ValueError('waterway_type must be either natural or all.')
 
-    ## Prepare the polygon
+    # Prepare the polygon
     poly1 = poly.to_crs('epsg:4326').copy()
     poly1['geometry'] = poly1.buffer(buffer)
     poly2 = poly1.unary_union
     min_lon, min_lat, max_lon, max_lat = poly2.bounds
 
-    ## Query OSM
+    # Query OSM
     q1 = q_base.format(min_lon=min_lon, min_lat=min_lat, max_lon=max_lon, max_lat=max_lat)
 
     api = overpass.API(endpoint=op_endpoint)
@@ -393,29 +397,18 @@ def get_waterways_within_boundary(poly, buffer=0, waterway_type='all'):
 
     response = api.get(q1, responseformat='json')
 
-    ## convert to gpd
+    # convert to gpd
     s1 = osm2geojson.json2shapes(response)
-    [s['properties']['tags'].update({'name': 'No name'}) for s in s1 if not 'name' in s['properties']['tags']]
-    l1 = [[s['properties']['id'], s['properties']['tags']['name'], s['properties']['tags']['waterway'], s['shape']] for s in s1]
+    [s['properties']['tags'].update({'name': 'No name'})
+     for s in s1 if not 'name' in s['properties']['tags']]
+    l1 = [[s['properties']['id'], s['properties']['tags']['name'],
+           s['properties']['tags']['waterway'], s['shape']] for s in s1]
     df1 = pd.DataFrame(l1, columns=['way_id', 'name', 'waterway', 'geometry'])
     gdf1 = gpd.GeoDataFrame(df1, crs='epsg:4326', geometry='geometry')
     gdf2 = gdf1[gdf1.geom_type == 'LineString'].copy()
 
-    ## Select rivers within polygon
+    # Select rivers within polygon
     gdf3 = gdf2[gdf2.intersects(poly2)].to_crs(poly.crs).copy()
 
-    ## Return
+    # Return
     return gdf3
-
-
-
-
-
-
-
-
-
-
-
-
-

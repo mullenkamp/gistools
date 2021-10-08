@@ -4,10 +4,11 @@ Created on Fri Aug  3 15:28:28 2018
 
 @author: MichaelEK
 """
+import os
 import pandas as pd
 import geopandas as gpd
 from gistools import util, osm
-from gistools.datasets import get_path
+# from gistools.datasets import get_path
 
 #import osm
 #from datasets import get_path
@@ -18,18 +19,20 @@ pd.options.display.max_columns = 10
 ####################################
 ### Parameters
 
-sites_shp = 'flow_recorders_pareora'
+data_dir = os.path.join(os.path.split(os.path.realpath(os.path.dirname(__file__)))[0], 'datasets', 'shapefiles')
 
-sites_shp_path = get_path(sites_shp)
+sites_shp = 'flow_recorders_pareora.shp'
+
+sites_shp_path = os.path.join(data_dir, sites_shp)
 
 id_col = 'SITENUMBER'
 
-poly_shp = 'catchment_pareora'
+poly_shp = 'catchment_pareora.shp'
 
-poly_shp_path = get_path(poly_shp)
+poly_shp_path = os.path.join(data_dir, poly_shp)
 
 
-#osm.op_endpoint = 'http://10.8.1.5/api/interpreter'
+osm.op_endpoint = 'https://overpass.tethys-ts.xyz/api/interpreter'
 
 #sites_shp = 'opihi_limit_points'
 #
@@ -55,11 +58,11 @@ gdf_from['geometry'] = gdf_from.geometry.simplify(1)
 
 
 def test_get_nearest():
-    pts1 = osm.get_nearest_waterways(gdf_from, id_col)
+    pts1, no_node_ids = osm.get_nearest_waterways(gdf_from, id_col)
 
     assert (len(pts1) == 2) & isinstance(pts1, gpd.GeoDataFrame)
 
-pts1 = osm.get_nearest_waterways(gdf_from, id_col)
+pts1, no_node_ids = osm.get_nearest_waterways(gdf_from, id_col)
 
 
 def test_get_waterways():
