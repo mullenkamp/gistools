@@ -39,7 +39,7 @@ def get_nearest_waterways(gdf_from, id_col, max_distance=500, waterway_type='all
     max_distance : int
         The maximum search distance.
     waterway_type : str
-        Either 'nautral' or 'all'
+        Either 'natural' or 'all'
 
     Returns
     -------
@@ -121,7 +121,7 @@ def get_waterways(osm_nodes_from, waterway_type='all'):
     osm_nodes_from : GeoDataFrame
         Output GeoDataFrame from the get_nearest_waterways function with waterway nodes.
     waterway_type : str
-        Either 'nautral' or 'all'.
+        Either 'natural' or 'all'.
 
     Returns
     -------
@@ -353,7 +353,7 @@ def pts_to_waterway_delineation(gdf_from, id_col, max_distance=500, waterway_typ
     max_distance : int
         The maximum search distance.
     waterway_type : str
-        Either 'nautral' or 'all'
+        Either 'natural' or 'all'
     site_delineate : bool
         Whether the waterway network should be dileated all the way to the top (False) or only in between the sites (True).
 
