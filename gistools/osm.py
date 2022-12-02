@@ -336,6 +336,7 @@ def to_nx():
     """
     To be completed...convert to networkx. Look at osmnx...
     """
+    raise NotImplementedError('Not implemented...')
 
 
 def pts_to_waterway_delineation(gdf_from, id_col, max_distance=500, waterway_type='all', site_delineate=False):

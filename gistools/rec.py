@@ -56,6 +56,49 @@ def find_upstream(nzreach, rec_streams, segment_id_col='nzsegment', from_node_co
     return reaches
 
 
+def find_downstream(nzreach, rec_streams, segment_id_col='nzsegment', from_node_col='FROM_NODE', to_node_col='TO_NODE'):
+    """
+    Function to estimate all of the reaches (and nodes) downstream of specific reaches.
+
+    Parameters
+    ----------
+    nzreach : list, ndarray, Series of int
+        The NZ reach IDs
+    rec_streams_shp : str path or GeoDataFrame
+        str path to the REC streams shapefile or the equivelant GeoDataFrame.
+    segment_id_col : str
+        The column name of the line segment id.
+    from_node_col : str
+        The from node column
+    to_node_col : str
+        The to node column
+
+    Returns
+    -------
+    DataFrame
+    """
+    if not isinstance(nzreach, (list, np.ndarray, pd.Series)):
+        raise TypeError('nzreach must be a list, ndarray or Series.')
+
+    ### Load data
+    rec = load_geo_data(rec_streams).drop('geometry', axis=1).copy()
+
+    ### Run through all nzreaches
+    reaches_lst = []
+    for i in nzreach:
+        reach1 = rec[rec[segment_id_col] == i].copy()
+        down1 = rec[rec[from_node_col].isin(reach1[to_node_col])]
+        while not down1.empty:
+            reach1 = pd.concat([reach1, down1])
+            down1 = rec[rec[from_node_col].isin(down1[to_node_col])]
+        reach1.loc[:, 'end'] = i
+        reaches_lst.append(reach1)
+
+    reaches = pd.concat(reaches_lst)
+    reaches.set_index('end', inplace=True)
+
+    return reaches
+
 ###############################################
 ### Catch delineation using the REC
 
