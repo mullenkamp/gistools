@@ -321,18 +321,20 @@ def multipoly_to_poly(geodataframe):
     -------
     GeoDataFrame
     """
-
     gpd2 = gpd.GeoDataFrame()
     for i in geodataframe.index:
         geom1 = geodataframe.loc[[i]]
         geom2 = geom1.loc[i, 'geometry']
-        if geom2.type == 'MultiPolygon':
-            polys = [j for j in geom2]
+        if geom2.geom_type == 'MultiPolygon':
+            polys = [j for j in geom2.geoms]
             new1 = geom1.loc[[i] * len(polys)]
             new1.loc[:, 'geometry'] = polys
         else:
             new1 = geom1.copy()
         gpd2 = pd.concat([gpd2, new1])
+
+    gpd2.crs = geodataframe.crs
+
     return gpd2.reset_index(drop=True)
 
 
