@@ -5,9 +5,7 @@ Vector processing functions.
 import numpy as np
 import pandas as pd
 import geopandas as gpd
-from geopandas.tools import sjoin
 from shapely.geometry import Point, Polygon, box
-from gistools.util import load_geo_data
 from pycrs import parse
 from scipy.spatial import cKDTree
 
