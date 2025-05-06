@@ -63,6 +63,8 @@ def query_esri_mapserver(base_url, layer_id, out_fields=None, where=None):
 
     if 'exceededTransferLimit' in data:
         exceed = data.pop('exceededTransferLimit')
+        if 'properties' in data:
+            _ = data.pop('properties')
     else:
         exceed = False
 
@@ -83,12 +85,14 @@ def query_esri_mapserver(base_url, layer_id, out_fields=None, where=None):
 
         data = orjson.loads(resp.content)
 
-        data_all['features'].extend(data['features'])
-
         if 'exceededTransferLimit' in data:
             exceed = data.pop('exceededTransferLimit')
+            if 'properties' in data:
+                _ = data.pop('properties')
         else:
             exceed = False
+
+        data_all['features'].extend(data['features'])
 
     return data_all
 
